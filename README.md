@@ -21,6 +21,10 @@ Shapes4Learn defines a formal language for shapes creation and manipulation. The
 * **Interpreter:** This is the most important component of the framework because is the one that students must implement. It can be as simple or complex as the developer wants. Shape4Learn packages a trivial **Interpreter** implemented using regular expressions that is used in the tests.
 * **InterpreterTests:** A Test Suite that must be passed by any implemented **Interpreter**.
 
+### Class diagram
+
+![alt tag](https://raw.githubusercontent.com/mgiorgio/shapes4learn/master/doc/classdiagram.gif)
+
 ### Future steps
 
 ##### It is expected in the near future that Shapes4Learn will incorporate the next features:
@@ -45,7 +49,7 @@ In this language, tokens are mostly separated by whitespaces such as space, tab,
 
 **Create a shape in the Shape Ambient. The new shape will have the provided id:**
 
-create shape|rectangle|circle [id];
+create rectangle|circle [id];
 
 **Set the color to an already existing shape in the Shape Ambient. The shape must already exist:**
 
@@ -92,8 +96,6 @@ setposition [expression],[expression] in shape [id];
 
 [number] := [digit][number]|[digit]
 
-### Grammars to be defined by students
-
-**A mathematical expression that supports numbers, addition, subtraction, multiplication, division and parenthesis. For example: 9+(4*(5-7)+8/2):**
+**A mathematical expression that supports numbers, addition, subtraction, multiplication, division and parenthesis. For example:** 9+(4*(5-7)+8/2)
 
 [expression] :=
