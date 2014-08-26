@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 import edu.maimonides.multimedia.shapes4learn.model.ShapeAmbient;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Rectangle;

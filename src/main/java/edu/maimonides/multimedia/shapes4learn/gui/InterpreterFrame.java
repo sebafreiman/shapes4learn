@@ -103,11 +103,12 @@ public class InterpreterFrame extends JFrame {
 	private class RunActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			clearConsole();
 			try {
 				interpreter.interpret(getInputCode(), ambient);
+				message("Compilation successful.");
 			} catch (CodeException e1) {
-				clearConsole();
-				error(e1.getMessage());
+				message(e1.getMessage());
 			}
 			shapesPanel.repaint();
 			dashboard.repaint();
@@ -126,7 +127,7 @@ public class InterpreterFrame extends JFrame {
 		console.setText("");
 	}
 
-	public void error(String message) {
+	public void message(String message) {
 		console.setText(console.getText() + "\n" + message);
 	}
 
