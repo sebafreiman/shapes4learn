@@ -12,6 +12,7 @@ import edu.maimonides.multimedia.shapes4learn.model.shapes.Rectangle;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Shape;
 import edu.maimonides.multimedia.shapes4learn.utils.ColorUtils;
 import edu.maimonides.multimedia.shapes4learn.utils.ShapeUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Hard-coded, regex-based implementation of {@link Interpreter}, mostly for
