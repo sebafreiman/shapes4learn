@@ -20,12 +20,16 @@ public class Launcher {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		String classname = null;
 		if (args.length == 0) {
-			JOptionPane.showMessageDialog(null, "An Interpreter implementation must be passed", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Using Test Interpreter", "Warning", JOptionPane.WARNING_MESSAGE);
+			classname = "edu.maimonides.multimedia.shapes4learn.interpreter.RegexInterpreter";
+		} else {
+			classname = args[0];
 		}
 		InterpreterFrame frame;
 		try {
-			frame = new InterpreterFrame(createInterpreter(args[0]), new BasicShapeAmbient());
+			frame = new InterpreterFrame(createInterpreter(classname), new BasicShapeAmbient());
 			frame.init();
 			frame.setVisible(true);
 		} catch (ClassNotFoundException e) {
