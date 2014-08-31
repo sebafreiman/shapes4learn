@@ -46,5 +46,11 @@
 		<artifactId>jgoodies-forms</artifactId>
 		<version>1.7.2</version>
 	</dependency>
+    <dependency>
+      <groupId>shapes4learn</groupId>
+      <artifactId>shapes4learn</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
 </project>
