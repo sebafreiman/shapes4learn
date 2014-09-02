@@ -70,7 +70,7 @@ public abstract class InterpreterTests {
 	}
 
 	private void createShape(String specificShape, final String shapeID) throws CodeException {
-		final String code = "create " + specificShape + " " + shapeID + ";";
+		final String code = "create " + specificShape + " " + shapeID + " ;";
 
 		interpreter.interpret(code, ambient);
 	}
@@ -79,7 +79,7 @@ public abstract class InterpreterTests {
 	public void testSetColor() throws CodeException {
 		final String colorDef = "#123456";
 		final String SHAPE_ID = "testshape";
-		final String code = "setcolor " + colorDef + " in shape " + SHAPE_ID + ";";
+		final String code = "setcolor " + colorDef + " in shape " + SHAPE_ID + " ;";
 
 		createShape(SHAPE_ID);
 
@@ -96,7 +96,7 @@ public abstract class InterpreterTests {
 	public void testSetColorOnUnknownID() {
 		final String colorDef = "#123456";
 		final String SHAPE_ID = "testshape";
-		final String code = "set color " + colorDef + " in shape " + SHAPE_ID + ";";
+		final String code = "set color " + colorDef + " in shape " + SHAPE_ID + " ;";
 
 		try {
 			interpreter.interpret(code, ambient);
@@ -147,7 +147,7 @@ public abstract class InterpreterTests {
 	public void testSetBaseInRectangle() throws CodeException {
 		final int base = 20;
 		final String SHAPE_ID = "testrectangle";
-		final String code = "setbase " + base + " in rectangle " + SHAPE_ID + ";";
+		final String code = "setbase " + base + " in rectangle " + SHAPE_ID + " ;";
 
 		createShape("rectangle", SHAPE_ID);
 
@@ -162,7 +162,7 @@ public abstract class InterpreterTests {
 	public void testThatBaseCannotBeSetInCircles() {
 		final int base = 20;
 		final String SHAPE_ID = "testrectangle";
-		final String code = "setbase " + base + " in circle " + SHAPE_ID + ";";
+		final String code = "setbase " + base + " in circle " + SHAPE_ID + " ;";
 
 		try {
 			createShape("circle", SHAPE_ID);
