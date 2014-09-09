@@ -17,6 +17,7 @@ public class SemanticAnalyzer {
 
 	public AST analyze(AST ast) throws SemanticException {
 		// TODO Implement.
+            
 		return ast;
 	}
 }

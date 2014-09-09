@@ -51,7 +51,7 @@ public class LexicalAnalyzerTest {
         List<Token> result = instance.analyze(code);
         assertEquals(4, result.size());
         assertEquals("create", result.get(0).getValue());
-        assertEquals("command", result.get(0).getType());
+        assertEquals("command_create", result.get(0).getType());
 
         assertEquals("rectangle", result.get(1).getValue());
         assertEquals("shape_type", result.get(1).getType());
@@ -72,7 +72,7 @@ public class LexicalAnalyzerTest {
         List<Token> result = instance.analyze(code);
         assertEquals(6, result.size());
         assertEquals("setbase", result.get(0).getValue());
-        assertEquals("command", result.get(0).getType());
+        assertEquals("command_setbase", result.get(0).getType());
 
         assertEquals("1234", result.get(1).getValue());
         assertEquals("expression", result.get(1).getType());
@@ -99,7 +99,7 @@ public class LexicalAnalyzerTest {
         List<Token> result = instance.analyze(code);
         assertEquals(8, result.size());
         assertEquals("setheight", result.get(0).getValue());
-        assertEquals("command", result.get(0).getType());
+        assertEquals("command_setheight", result.get(0).getType());
 
         assertEquals("1", result.get(1).getValue());
         assertEquals("expression", result.get(1).getType());
@@ -132,7 +132,7 @@ public class LexicalAnalyzerTest {
         List<Token> result = instance.analyze(code);
         assertEquals(6, result.size());
         assertEquals("setradius", result.get(0).getValue());
-        assertEquals("command", result.get(0).getType());
+        assertEquals("command_setradius", result.get(0).getType());
 
         assertEquals("92", result.get(1).getValue());
         assertEquals("expression", result.get(1).getType());

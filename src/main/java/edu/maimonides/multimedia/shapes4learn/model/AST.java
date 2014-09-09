@@ -18,6 +18,17 @@ public class AST {
 	 */
 	private List<AST> children;
 
+    public AST(List<AST> children, Token token) {
+        this.children = children;
+        this.token = token;
+    }
+        private Token token;
+        public void setToken (Token token){
+            this.token=token;
+        }
+        public Token getToken (){
+            return this.token;
+        }
 	// TODO Implement attributes.
 
 	public AST() {

@@ -23,11 +23,15 @@ public class Token {
     }
 
     public Token() {
-        this.type="";
+        this.type = "";
     }
 
     public String getType() {
         return type;
+    }
+    
+    public boolean matchType(String value){
+        return this.type.equals(value);
     }
 
     public String getValue() {
@@ -39,10 +43,22 @@ public class Token {
     }
 
     public void setValue(String value) throws LexicalException {
-        if (value.matches("create|setcolor|setbase|setheight|setradius|setposition")) {
-            this.setType("command");
-        } else if (value.matches("circle|rectangle")) {
-            this.setType("shape_type");
+        if (value.matches("create")) {
+            this.setType("command_create");
+        } else if (value.matches("setcolor")) {
+            this.setType("command_setcolor");
+        } else if (value.matches("setbase")) {
+            this.setType("command_setbase");
+        } else if (value.matches("setheight")) {
+            this.setType("command_setheight");
+        } else if (value.matches("setradius")) {
+            this.setType("command_setradius");
+        } else if (value.matches("setposition")) {
+            this.setType("command_setposition");
+        } else if (value.matches("circle")) {
+            this.setType("shape_type_circle");
+        } else if (value.matches("rectangle")) {
+            this.setType("shape_rectangle");
         } else if (value.matches("in")) {
             this.setType("connector_in");
         } else if (value.matches("shape")) {

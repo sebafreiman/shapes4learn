@@ -6,6 +6,7 @@
 
 package edu.maimonides.multimedia.shapes4learn.interpreter;
 import edu.maimonides.multimedia.shapes4learn.analysis.*;
+import edu.maimonides.multimedia.shapes4learn.model.AST;
 import edu.maimonides.multimedia.shapes4learn.model.ShapeAmbient;
 import edu.maimonides.multimedia.shapes4learn.model.Token;
 import java.io.IOException;
@@ -21,9 +22,15 @@ public class MainInterpreter implements Interpreter{
     @Override
     public void interpret(String code, ShapeAmbient ambient) throws CodeException {
         LexicalAnalyzer lexA = new LexicalAnalyzer();
+        SyntacticAnalyzer synA = new SyntacticAnalyzer();
+        SemanticAnalyzer semA = new SemanticAnalyzer();
+        AST ast = new AST();
+        
         try {
             List<Token> lexATokens = lexA.analyze(code);
-        } catch (LexicalException ex) {
+            ast=synA.analyze(lexATokens);
+            ast=semA.analyze(ast);
+        } catch (LexicalException | SyntacticException | SemanticException ex ) {
             throw new CodeException(ex.getMessage());
         }
     }
