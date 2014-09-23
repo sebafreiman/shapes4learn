@@ -5,6 +5,7 @@ import java.util.List;
 import edu.maimonides.multimedia.shapes4learn.model.AST;
 import edu.maimonides.multimedia.shapes4learn.model.Token;
 import java.util.ListIterator;
+import java.util.Stack;
 
 /**
  * This class is responsible for the second part of the interpreter: syntactic
@@ -18,6 +19,7 @@ public class SyntacticAnalyzer {
 
     AST ast;
     ListIterator<Token> tkenit;
+    Stack<Token> tkenStack;
 
     public SyntacticAnalyzer() {
     }
@@ -47,17 +49,17 @@ public class SyntacticAnalyzer {
                 case "command_setbase":
                     matchSetBaseHeight();
                     break;
-                case "command_setheight":
-                    matchSetBaseHeight();
-                    break;
-                case "command_setradius":
-                    matchSetRadius();
-                    break;
-                case "command_setposition":
-                    matchSetPosition();
-                    break;
+//                case "command_setheight":
+//                    matchSetBaseHeight();
+//                    break;
+//                case "command_setradius":
+//                    matchSetRadius();
+//                    break;
+//                case "command_setposition":
+//                    matchSetPosition();
+//                    break;
                 default:
-                    throw new SyntacticException("Expected command but get:" + tken.getType() + " and value:" + tken.getValue());
+                    throw new SyntacticException("Syntactic Exception: Expected command but get: " + tken.getType() + " (" + tken.getValue() + ")");
             }
 
         }
@@ -65,7 +67,7 @@ public class SyntacticAnalyzer {
         return ast;
     }
 
-    public boolean matchSetBaseHeight() {
+    public boolean matchSetBaseHeight() throws SyntacticException {
 //        setbase|setheight [expression] in rectangle [id];
 
         boolean matchStatus;
@@ -75,19 +77,19 @@ public class SyntacticAnalyzer {
             matchStatus = false;
         }
 
-        if (!matchConnectorIn(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "connector_in")) {
             matchStatus = false;
         }
 
-        if (!matchConnectorShapeRectangle(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "shape_rectangle")) {
             matchStatus = false;
         }
 
-        if (!matchId(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "identifier")) {
             matchStatus = false;
         }
 
-        if (!matchCommandEnd(tkenit)) {
+        if (!matchGeneric(tkenit, "command_end")) {
             matchStatus = false;
         }
 
@@ -95,7 +97,7 @@ public class SyntacticAnalyzer {
 
     }
 
-    public boolean matchCreate() {
+    public boolean matchCreate() throws SyntacticException {
 
         //if(lookahead_command == "create")
         //match (create)
@@ -104,15 +106,16 @@ public class SyntacticAnalyzer {
         boolean matchStatus;
         matchStatus = true;
 
-        if (!matchShape(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "shape_rectangle|shape_circle")) {
             matchStatus = false;
         }
 
-        if (!matchId(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "identifier")) {
             matchStatus = false;
+
         }
 
-        if (!matchCommandEnd(tkenit)) {
+        if (!matchGeneric(this.tkenit, "command_end")) {
             matchStatus = false;
         }
 
@@ -120,34 +123,34 @@ public class SyntacticAnalyzer {
 
     }
 
-    private boolean matchSetColor() {
+    private boolean matchSetColor() throws SyntacticException {
         boolean matchStatus;
         matchStatus = true;
 
-        if (!this.tkenit.hasNext() || !matchColorDef(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "color_def")) {
             matchStatus = false;
         }
 
-        if (!this.tkenit.hasNext() || !matchConnectorIn(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "connector_in")) {
             matchStatus = false;
         }
 
-        if (!this.tkenit.hasNext() || !matchConnectorShape(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "shape_rectangle|shape_circle")) {
             matchStatus = false;
         }
 
-        if (!this.tkenit.hasNext() || !matchId(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "identifier")) {
             matchStatus = false;
         }
 
-        if (!this.tkenit.hasNext() || !matchCommandEnd(tkenit)) {
+        if (!matchGeneric(this.tkenit, "command_end")) {
             matchStatus = false;
         }
 
         return matchStatus;
     }
 
-    private boolean matchSetRadius() {
+    private boolean matchSetRadius() throws SyntacticException {
         //setradius [expression] in circle [id];
 
         boolean matchStatus;
@@ -165,7 +168,7 @@ public class SyntacticAnalyzer {
             matchStatus = false;
         }
 
-        if (!matchId(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "identifier")) {
             matchStatus = false;
         }
 
@@ -176,7 +179,7 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
-    private boolean matchSetPosition() {
+    private boolean matchSetPosition() throws SyntacticException {
         //Set the 2D-position (x,y) for the shape given by the id: 
         //setposition [expression],[expression] in shape [id];
         boolean matchStatus;
@@ -198,11 +201,11 @@ public class SyntacticAnalyzer {
             matchStatus = false;
         }
 
-        if (!matchId(this.tkenit)) {
+        if (!matchGeneric(this.tkenit, "identifier")) {
             matchStatus = false;
         }
 
-        if (!matchCommandEnd(tkenit)) {
+        if (matchGeneric(this.tkenit, "command_end")) {
             matchStatus = false;
         }
 
@@ -210,31 +213,38 @@ public class SyntacticAnalyzer {
     }
 
     public boolean matchShape(ListIterator<Token> tokens) {
-        boolean matchStatus = true;
+        boolean matchStatus = false;
         Token tken = tokens.next();
         tokens.remove();
-        if (tken.getType().matches("circle|rectangle")) {
+        if (tken.getType().matches("shape_rectangle|shape_circle")) {
             AST newAst = new AST();
             newAst.setToken(tken);
             ast.addChild(newAst);
-        } else {
-            matchStatus = false;
+            matchStatus = true;
+
         }
         return matchStatus;
     }
 
-    public boolean matchId(ListIterator<Token> tokens) {
-        boolean matchStatus = true;
-        Token tken = tokens.next();
-        tokens.remove();
-        if (tken.getType().matches("identifier")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
+    public boolean matchGeneric(ListIterator<Token> tokens, String tokenType) throws SyntacticException {
+        boolean matchStatus = false;
+        if (tokens.hasNext()) {
+            Token tken = tokens.next();
+            //tokens.remove();
+            if (tken.getType().matches(tokenType)) {
+//                AST newAst = new AST();
+//                newAst.setToken(tken);
+//                ast.addChild(newAst);
+                matchStatus = true;
+            } else {
+                throw new SyntacticException("Syntactic exception: I was expecting something like: " + tokenType);
+            }
         } else {
-            matchStatus = false;
+            throw new SyntacticException("Syntactic exception: I was expecting something like: " + tokenType);
+
         }
         return matchStatus;
+
     }
 
     public boolean matchCommandEnd(ListIterator<Token> tokens) {
@@ -293,44 +303,81 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
-    private boolean matchExpression(ListIterator<Token> tkenit) {
-        boolean matchStatus = true;
-        Token tken = tkenit.next();
-        tkenit.remove();
-        if (tken.getType().matches("expression")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-        } else {
-            matchStatus = false;
+    private boolean matchExpression(ListIterator<Token> tkenit) throws SyntacticException {
+
+        /*number] := [digit][number]|[digit]
+         A mathematical expression that supports numbers, addition, subtraction, multiplication, division and parenthesis. For example: 9+(4*(5-7)+8/2)
+         [expression] :=  [termino] + [termino] | [termino] - [termino] |  ( [expression] )
+         [termino] := [termino] * [termino] | [termino] / [termino] | [number]
+         */
+        boolean matchStatus = false;
+        if (tkenit.hasNext()) {
+            Token tken = tkenit.next();
+            //tkenit.remove();
+            switch (tken.getType()) {
+                case "parenthesis_open":
+                    matchExpression(this.tkenit);
+                    matchGeneric(this.tkenit, "parenthesis_close");
+                    
+                    if (lookahead(this.tkenit, "expression_operator")) {
+                        matchExpression(this.tkenit);
+                    }
+                    matchStatus = true;
+
+                    break;
+
+                case "parenthesis_close":
+                    //throw new SyntacticException("You close parenthesis but did not opened.");
+                    break;
+                    
+                case "expression_number":
+                    if (lookahead(this.tkenit, "expression_operator")) {
+                        matchExpression(this.tkenit);
+                    }
+                    matchStatus = true;
+
+                    break;
+                case "expression_operator":
+                    //if (lookahead(this.tkenit, "parethesis_open|expression_number")) {
+                        matchExpression(this.tkenit);
+                    //}
+                    matchStatus = true;
+
+                    break;
+                default:
+                    throw new SyntacticException("Syntactic exception: Not an expression: " + tken.getType() + " value:" + tken.getValue());
+
+            }
+
         }
         return matchStatus;
+
     }
 
     private boolean matchConnectorShapeRectangle(ListIterator<Token> tkenit) {
-        boolean matchStatus = true;
+        boolean matchStatus = false;
         Token tken = tkenit.next();
         tkenit.remove();
         if (tken.getType().matches("shape_rectangle")) {
             AST newAst = new AST();
             newAst.setToken(tken);
             ast.addChild(newAst);
-        } else {
-            matchStatus = false;
+            matchStatus = true;
+
         }
         return matchStatus;
     }
 
     private boolean matchExpressionSeparator(ListIterator<Token> tkenit) {
-        boolean matchStatus = true;
+        boolean matchStatus = false;
         Token tken = tkenit.next();
         tkenit.remove();
         if (tken.getType().matches("expression_separator")) {
             AST newAst = new AST();
             newAst.setToken(tken);
             ast.addChild(newAst);
-        } else {
-            matchStatus = false;
+            matchStatus = true;
+
         }
         return matchStatus;
     }
@@ -349,4 +396,16 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
+    private boolean lookahead(ListIterator<Token> tkenit, String matchString) {
+        boolean matchStatus = false;
+        if (tkenit.hasNext()) {
+            Token tken = tkenit.next();
+            if (tken.getType().matches(matchString)) {
+                matchStatus = true;
+            }
+            tkenit.previous();
+        }
+
+        return matchStatus;
+    }
 }

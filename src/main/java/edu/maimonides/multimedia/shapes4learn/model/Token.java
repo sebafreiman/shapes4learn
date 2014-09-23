@@ -29,8 +29,8 @@ public class Token {
     public String getType() {
         return type;
     }
-    
-    public boolean matchType(String value){
+
+    public boolean matchType(String value) {
         return this.type.equals(value);
     }
 
@@ -56,15 +56,18 @@ public class Token {
         } else if (value.matches("setposition")) {
             this.setType("command_setposition");
         } else if (value.matches("circle")) {
-            this.setType("shape_type_circle");
+            this.setType("shape_circle");
         } else if (value.matches("rectangle")) {
             this.setType("shape_rectangle");
         } else if (value.matches("in")) {
             this.setType("connector_in");
         } else if (value.matches("shape")) {
             this.setType("connector_shape");
-        } else if (value.matches("(\\+|-|\\*|/|[0-9])*")) {
-            this.setType("expression");
+            //} else if (value.matches("(\\+|-|\\*|/|[0-9])*")) {
+        } else if (value.matches("([0-9])*")) {
+            this.setType("expression_number");
+        } else if (value.matches("\\+|-|\\*|/|")) {
+            this.setType("expression_operator");
         } else if (value.matches("\\(")) {
             this.setType("parenthesis_open");
         } else if (value.matches("\\)")) {
