@@ -22,6 +22,7 @@ public class SyntacticAnalyzer {
     Stack<Token> tkenStack;
 
     public SyntacticAnalyzer() {
+        tkenStack = new Stack<Token>();
     }
 
     public AST analyze(List<Token> tokens) throws SyntacticException {
@@ -369,68 +370,71 @@ public class SyntacticAnalyzer {
 
     private AST matchE(ListIterator<Token> tkenit) throws SyntacticException {
         /*
-         <E> ::= <T> <E'>
-         <E'> ::= + <E> | - <E> | ε
+         <E> ::= <T> <E'>  ->MatchE
+         <E'> ::= + <E> | - <E> | ε -> matchExprTerm
          <T> ::= <F> <T'>
          <T'> ::= * <T> | / <T> | ε
-         <F> ::= [N] | ( <E> ) | - <F>
+         <F> ::= [N] | ( <E> ) | - <F> matchExprFact
          */
+        Token tken;
         AST expAST = new AST();
-        if (tkenit.hasNext()) {
-            Token tken = tkenit.next();
-            switch (tken.getType()) {
-                case "expression_number":
-                    if (lookahead(tkenit, "expression_operator_fact")) {
-                        matchExprFactor(tkenit);
-                    } else if (lookahead(tkenit, "expression_operator_term")) {
-                        matchExprTerm(tkenit);
-                    }
-                    break;
-                case "parenthesis_open":
-                    matchE(tkenit);
-                    matchGeneric(tkenit, "parenthesis_close");
-                    break;
-                default:
-                    throw new SyntacticException("Syntact error: Expected expression but get something else:" + tken.getType());
-            }
-            matchExprFactor(tkenit);
+        String lookStr = lookaheadString(tkenit);
+        switch (lookStr) {
+            case "expression_number":
+                matchExprTerm(tkenit);
+                break;
+            case "parenthesis_open":
+                this.tkenStack.add(tkenit.next());
+                matchE(tkenit);
+                matchGeneric(tkenit, "parenthesis_close");
+                break;
+            default:
+                throw new SyntacticException("Syntact error: Expected expression but get something else:" + lookStr);
         }
+        //matchExprFactor(tkenit);
         return expAST;
 
     }
 
     private AST matchExprTerm(ListIterator<Token> tkenit) throws SyntacticException {
         AST expAST = new AST();
-        if (lookahead(tkenit, "expression_number|expression_operator_term")) {
-            Token tken = tkenit.next();
-            switch (tken.getType()) {
-                case "expression_number":
-                    if (lookahead(tkenit, "expression_operator_term")) {
-                        matchExprTerm(tkenit);
-                    }
-                    break;
+        matchExprFactor(tkenit);
+        while (lookahead(tkenit, "expression_operator_term|expression_operator_fact")) {
+            switch (lookaheadString(tkenit)) {
                 case "expression_operator_term":
-                    if (lookahead(tkenit, "expression_number")) {
-                        matchExprTerm(tkenit);
-                    }
-                    break;
-                default:
-                    throw new SyntacticException("Syn error: Expected number or operator");
-            }
-            matchExprFactor(tkenit);
+                    this.tkenStack.add(tkenit.next());
+                    matchExprTerm(tkenit);
 
+                    break;
+                case "expression_operator_fact":
+                    this.tkenStack.add(tkenit.next());
+
+                    matchExprFactor(tkenit);
+
+                    break;
+            }
         }
+
         return expAST;
 
     }
 
     private AST matchExprFactor(ListIterator<Token> tkenit) throws SyntacticException {
         AST expAST = new AST();
-        if (lookahead(tkenit, "expression_number|expression_operator_fact")) {
-            Token tken = tkenit.next();
-            switch (tken.getType()) {
-            }
-            matchExprFactor(tkenit);
+        String lookString = lookaheadString(tkenit);
+        switch (lookString) {
+            case "expression_number":
+                this.tkenStack.add(tkenit.next());
+                break;
+            case "parenthesis_open":
+                this.tkenStack.add(tkenit.next());
+                matchE(tkenit);
+                matchGeneric(tkenit, "parenthesis_close");
+                break;
+            case "":
+                break;
+            default:
+                throw new SyntacticException("Sytactic error: Expected number, parenthesis.");
 
         }
         return expAST;
