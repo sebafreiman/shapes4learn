@@ -67,34 +67,15 @@ public class SyntacticAnalyzer {
         return ast;
     }
 
-    public boolean matchSetBaseHeight() throws SyntacticException {
+    public AST matchSetBaseHeight() throws SyntacticException {
 //        setbase|setheight [expression] in rectangle [id];
-
-        boolean matchStatus;
-        matchStatus = true;
-
-        if (!matchExpression(this.tkenit)) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "connector_in")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "shape_rectangle")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "identifier")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(tkenit, "command_end")) {
-            matchStatus = false;
-        }
-
-        return matchStatus;
-
+        AST matchAST = new AST();
+        matchAST = matchE(this.tkenit);
+        matchGeneric(this.tkenit, "connector_in");
+        matchGeneric(this.tkenit, "shape_rectangle");
+        matchGeneric(this.tkenit, "identifier");
+        matchGeneric(tkenit, "command_end");
+        return matchAST;
     }
 
     public boolean matchCreate() throws SyntacticException {
@@ -156,9 +137,7 @@ public class SyntacticAnalyzer {
         boolean matchStatus;
         matchStatus = true;
 
-        if (!matchExpression(this.tkenit)) {
-            matchStatus = false;
-        }
+        matchExpression(this.tkenit);
 
         if (!matchConnectorIn(this.tkenit)) {
             matchStatus = false;
@@ -185,17 +164,13 @@ public class SyntacticAnalyzer {
         boolean matchStatus;
         matchStatus = true;
 
-        if (!matchExpression(this.tkenit)) {
-            matchStatus = false;
-        }
+        matchExpression(this.tkenit);
 
         if (!matchExpressionSeparator(this.tkenit)) {
             matchStatus = false;
         }
 
-        if (!matchExpression(this.tkenit)) {
-            matchStatus = false;
-        }
+        matchExpression(this.tkenit);
 
         if (!matchConnectorShape(this.tkenit)) {
             matchStatus = false;
@@ -237,11 +212,11 @@ public class SyntacticAnalyzer {
 //                ast.addChild(newAst);
                 matchStatus = true;
             } else {
-                throw new SyntacticException("Syntactic exception: I was expecting something like: " + tokenType);
+
+                throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType + ". \n I've founda token type: " + tken.getType() + " value:'" + tken.getValue() + "'");
             }
         } else {
-            throw new SyntacticException("Syntactic exception: I was expecting something like: " + tokenType);
-
+            throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType);
         }
         return matchStatus;
 
@@ -303,45 +278,80 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
-    private boolean matchExpression(ListIterator<Token> tkenit) throws SyntacticException {
+    /**
+     * Verify if tokens in the list contains a valid expression.
+     *
+     * @param tkenit
+     * @return
+     * @throws SyntacticException
+     */
+    private AST matchExpression(ListIterator<Token> tkenit) throws SyntacticException {
+
+        AST expAST = new AST(), childAST = new AST();
 
         /*number] := [digit][number]|[digit]
          A mathematical expression that supports numbers, addition, subtraction, multiplication, division and parenthesis. For example: 9+(4*(5-7)+8/2)
          [expression] :=  [termino] + [termino] | [termino] - [termino] |  ( [expression] )
          [termino] := [termino] * [termino] | [termino] / [termino] | [number]
          */
-        boolean matchStatus = false;
+        /*
+         1+2+3+4
+         [number] := [digit][number]|[digit]
+         [expression] :=  [termino] | [termino] + [termino] | [termino] - [termino] 
+         [termino] :=  [factor] | [factor] * [factor] | [factor] / [factor]
+         [factor] := [number] | ( [expression] )
+         */
         if (tkenit.hasNext()) {
             Token tken = tkenit.next();
             //tkenit.remove();
             switch (tken.getType()) {
                 case "parenthesis_open":
-                    matchExpression(this.tkenit);
-                    matchGeneric(this.tkenit, "parenthesis_close");
-                    
-                    if (lookahead(this.tkenit, "expression_operator")) {
-                        matchExpression(this.tkenit);
-                    }
-                    matchStatus = true;
+                    //expression
+                    expAST = matchExpression(tkenit);
 
+                    //matchExpression(this.tkenit);
+                    matchGeneric(this.tkenit, "parenthesis_close");
+
+                    if (lookahead(this.tkenit, "expression_operator_term|expression_operator_fact")) {
+                        expAST.addChild(matchExpression(this.tkenit));
+                    }
                     break;
 
                 case "parenthesis_close":
-                    //throw new SyntacticException("You close parenthesis but did not opened.");
-                    break;
-                    
+                    throw new SyntacticException("You've close a parenthesis but did't openen one.");
+                //break;
+
                 case "expression_number":
-                    if (lookahead(this.tkenit, "expression_operator")) {
-                        matchExpression(this.tkenit);
+                    //termino
+
+                    if (lookahead(this.tkenit, "expression_operator_term")) {
+                        expAST = matchExpression(tkenit);
+                        childAST.setToken(tken);
+                        expAST.addChild(childAST);
+
+                    } else if (lookahead(this.tkenit, "expression_operator_fact")) {
+                        expAST.addChild(matchExpression(this.tkenit));
+                        childAST.setToken(tken);
+                        expAST.addChild(childAST);
+
+                    } else if (lookahead(this.tkenit, "parethesis_open")) {
+                        expAST.addChild(matchExpression(this.tkenit));
+                        childAST.setToken(tken);
+                        expAST.addChild(childAST);
+
+                    } else {
+                        expAST.setToken(tken);
                     }
-                    matchStatus = true;
 
                     break;
-                case "expression_operator":
-                    //if (lookahead(this.tkenit, "parethesis_open|expression_number")) {
-                        matchExpression(this.tkenit);
-                    //}
-                    matchStatus = true;
+                case "expression_operator_term":
+                    expAST.setToken(tken);
+                    expAST.addChild(matchExpression(this.tkenit));
+
+                    break;
+                case "expression_operator_fact":
+                    expAST.setToken(tken);
+                    expAST.addChild(matchExpression(this.tkenit));
 
                     break;
                 default:
@@ -349,8 +359,81 @@ public class SyntacticAnalyzer {
 
             }
 
+        } else {
+            throw new SyntacticException("Syntactic exception: Expected expression");
+
         }
-        return matchStatus;
+        return expAST;
+
+    }
+
+    private AST matchE(ListIterator<Token> tkenit) throws SyntacticException {
+        /*
+         <E> ::= <T> <E'>
+         <E'> ::= + <E> | - <E> | ε
+         <T> ::= <F> <T'>
+         <T'> ::= * <T> | / <T> | ε
+         <F> ::= [N] | ( <E> ) | - <F>
+         */
+        AST expAST = new AST();
+        if (tkenit.hasNext()) {
+            Token tken = tkenit.next();
+            switch (tken.getType()) {
+                case "expression_number":
+                    if (lookahead(tkenit, "expression_operator_fact")) {
+                        matchExprFactor(tkenit);
+                    } else if (lookahead(tkenit, "expression_operator_term")) {
+                        matchExprTerm(tkenit);
+                    }
+                    break;
+                case "parenthesis_open":
+                    matchE(tkenit);
+                    matchGeneric(tkenit, "parenthesis_close");
+                    break;
+                default:
+                    throw new SyntacticException("Syntact error: Expected expression but get something else:" + tken.getType());
+            }
+            matchExprFactor(tkenit);
+        }
+        return expAST;
+
+    }
+
+    private AST matchExprTerm(ListIterator<Token> tkenit) throws SyntacticException {
+        AST expAST = new AST();
+        if (lookahead(tkenit, "expression_number|expression_operator_term")) {
+            Token tken = tkenit.next();
+            switch (tken.getType()) {
+                case "expression_number":
+                    if (lookahead(tkenit, "expression_operator_term")) {
+                        matchExprTerm(tkenit);
+                    }
+                    break;
+                case "expression_operator_term":
+                    if (lookahead(tkenit, "expression_number")) {
+                        matchExprTerm(tkenit);
+                    }
+                    break;
+                default:
+                    throw new SyntacticException("Syn error: Expected number or operator");
+            }
+            matchExprFactor(tkenit);
+
+        }
+        return expAST;
+
+    }
+
+    private AST matchExprFactor(ListIterator<Token> tkenit) throws SyntacticException {
+        AST expAST = new AST();
+        if (lookahead(tkenit, "expression_number|expression_operator_fact")) {
+            Token tken = tkenit.next();
+            switch (tken.getType()) {
+            }
+            matchExprFactor(tkenit);
+
+        }
+        return expAST;
 
     }
 
@@ -396,11 +479,19 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
-    private boolean lookahead(ListIterator<Token> tkenit, String matchString) {
+    /**
+     * lookahead function check if the next token matches the type with the
+     * string.
+     *
+     * @param tkenit
+     * @param typeString
+     * @return
+     */
+    private boolean lookahead(ListIterator<Token> tkenit, String typeString) {
         boolean matchStatus = false;
         if (tkenit.hasNext()) {
             Token tken = tkenit.next();
-            if (tken.getType().matches(matchString)) {
+            if (tken.getType().matches(typeString)) {
                 matchStatus = true;
             }
             tkenit.previous();
@@ -408,4 +499,16 @@ public class SyntacticAnalyzer {
 
         return matchStatus;
     }
+
+    private String lookaheadString(ListIterator<Token> tkenit) {
+        String matchStatus = "";
+        if (tkenit.hasNext()) {
+            Token tken = tkenit.next();
+            matchStatus = tken.getType();
+            tkenit.previous();
+        }
+
+        return matchStatus;
+    }
+
 }
