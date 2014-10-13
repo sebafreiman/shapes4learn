@@ -381,16 +381,21 @@ public class SyntacticAnalyzer {
         String lookStr = lookaheadString(tkenit);
         switch (lookStr) {
             case "expression_number":
+                matchExprFactor(tkenit);
                 matchExprTerm(tkenit);
                 break;
             case "parenthesis_open":
                 this.tkenStack.add(tkenit.next());
                 matchE(tkenit);
                 matchGeneric(tkenit, "parenthesis_close");
+                if (lookahead(tkenit, "expression_operator_term")) {
+                    matchExprTerm(tkenit);
+                }
                 break;
             default:
                 throw new SyntacticException("Syntact error: Expected expression but get something else:" + lookStr);
         }
+
         //matchExprFactor(tkenit);
         return expAST;
 
@@ -398,21 +403,25 @@ public class SyntacticAnalyzer {
 
     private AST matchExprTerm(ListIterator<Token> tkenit) throws SyntacticException {
         AST expAST = new AST();
-        matchExprFactor(tkenit);
-        while (lookahead(tkenit, "expression_operator_term|expression_operator_fact")) {
-            switch (lookaheadString(tkenit)) {
+
+        //matchExprFactor(tkenit);
+
+        String lookString = lookaheadString(tkenit);
+
+        while (lookString.matches("expression_operator_term|expression_operator_fact")) {
+            switch (lookString) {
                 case "expression_operator_term":
                     this.tkenStack.add(tkenit.next());
+                    matchExprFactor(tkenit);
                     matchExprTerm(tkenit);
-
                     break;
                 case "expression_operator_fact":
                     this.tkenStack.add(tkenit.next());
-
                     matchExprFactor(tkenit);
-
                     break;
+
             }
+            lookString = lookaheadString(tkenit);
         }
 
         return expAST;
@@ -434,7 +443,7 @@ public class SyntacticAnalyzer {
             case "":
                 break;
             default:
-                throw new SyntacticException("Sytactic error: Expected number, parenthesis.");
+                throw new SyntacticException("Sytactic error: Expected number or parenthesis.");
 
         }
         return expAST;
