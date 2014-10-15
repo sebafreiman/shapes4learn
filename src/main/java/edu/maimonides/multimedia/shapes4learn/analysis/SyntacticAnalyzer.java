@@ -28,21 +28,20 @@ public class SyntacticAnalyzer {
     public AST analyze(List<Token> tokens) throws SyntacticException {
         this.ast = new AST();
 
-        // TODO Implement.
         Token tken;
         AST newAst;
         this.tkenit = tokens.listIterator();
 
         while (this.tkenit.hasNext()) {
             tken = this.tkenit.next();
-            this.tkenit.remove();
+            //this.tkenit.remove();
             newAst = new AST();
-            newAst.setToken(tken);
 
             this.ast.addChild(newAst);
             switch (tken.getType()) {
                 case "command_create":
-                    matchCreate();
+                    newAst = matchCreate();
+                    newAst.setToken(tken);
                     break;
                 case "command_setcolor":
                     matchSetColor();
@@ -50,8 +49,8 @@ public class SyntacticAnalyzer {
                 case "command_setbase":
                     matchSetBaseHeight();
                     break;
-//                case "command_setheight":
-//                    matchSetBaseHeight();
+                case "command_setheight":
+                    matchSetBaseHeight();
 //                    break;
 //                case "command_setradius":
 //                    matchSetRadius();
@@ -69,7 +68,8 @@ public class SyntacticAnalyzer {
     }
 
     public AST matchSetBaseHeight() throws SyntacticException {
-//        setbase|setheight [expression] in rectangle [id];
+//setbase [expression] in rectangle [id];
+
         AST matchAST = new AST();
         matchAST = matchE(this.tkenit);
         matchGeneric(this.tkenit, "connector_in");
@@ -79,190 +79,77 @@ public class SyntacticAnalyzer {
         return matchAST;
     }
 
-    public boolean matchCreate() throws SyntacticException {
-
-        //if(lookahead_command == "create")
-        //match (create)
-        //match_shape (rectangle|circle)
-        //match (id)
+    public AST matchCreate() throws SyntacticException {
+        //create rectangle|circle [id];
         boolean matchStatus;
         matchStatus = true;
+        AST miAST = new AST();
+        matchGeneric(this.tkenit, "shape_rectangle|shape_circle");
+        matchGeneric(this.tkenit, "identifier");
+        matchGeneric(this.tkenit, "command_end");
 
-        if (!matchGeneric(this.tkenit, "shape_rectangle|shape_circle")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "identifier")) {
-            matchStatus = false;
-
-        }
-
-        if (!matchGeneric(this.tkenit, "command_end")) {
-            matchStatus = false;
-        }
-
-        return matchStatus;
+        return miAST;
 
     }
 
-    private boolean matchSetColor() throws SyntacticException {
-        boolean matchStatus;
-        matchStatus = true;
+    private AST matchSetColor() throws SyntacticException {
+        //setcolor [color_def] in shape [id]; 
+        AST miAST = new AST();
 
-        if (!matchGeneric(this.tkenit, "color_def")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "connector_in")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "shape_rectangle|shape_circle")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "identifier")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "command_end")) {
-            matchStatus = false;
-        }
-
-        return matchStatus;
+        matchGeneric(this.tkenit, "color_def");
+        matchGeneric(this.tkenit, "connector_in");
+        matchGeneric(this.tkenit, "shape_rectangle|shape_circle");
+        matchGeneric(this.tkenit, "identifier");
+        matchGeneric(this.tkenit, "command_end");
+        return miAST;
     }
 
-    private boolean matchSetRadius() throws SyntacticException {
+    private AST matchSetRadius() throws SyntacticException {
         //setradius [expression] in circle [id];
+        AST myAST = new AST();
 
-        boolean matchStatus;
-        matchStatus = true;
+        myAST = matchE(this.tkenit);
+        matchGeneric(tkenit, "connector_in");
+        matchGeneric(this.tkenit, "shape_type_circle");
+        matchGeneric(this.tkenit, "identifier");
+        matchGeneric(this.tkenit, "command_end");
 
-        matchExpression(this.tkenit);
-
-        if (!matchConnectorIn(this.tkenit)) {
-            matchStatus = false;
-        }
-
-        if (!matchConnectorShapeCircle(this.tkenit, "shape_type_circle")) {
-            matchStatus = false;
-        }
-
-        if (!matchGeneric(this.tkenit, "identifier")) {
-            matchStatus = false;
-        }
-
-        if (!matchCommandEnd(tkenit)) {
-            matchStatus = false;
-        }
-
-        return matchStatus;
+        return myAST;
     }
 
-    private boolean matchSetPosition() throws SyntacticException {
+    private AST matchSetPosition() throws SyntacticException {
         //Set the 2D-position (x,y) for the shape given by the id: 
         //setposition [expression],[expression] in shape [id];
-        boolean matchStatus;
-        matchStatus = true;
+        AST myAST = new AST();
 
-        matchExpression(this.tkenit);
+        myAST = matchE(this.tkenit);
 
-        if (!matchExpressionSeparator(this.tkenit)) {
-            matchStatus = false;
-        }
+        matchGeneric(this.tkenit, "expression_separator");
 
-        matchExpression(this.tkenit);
+        myAST = matchE(this.tkenit);
+        matchGeneric(this.tkenit, "connector_shape");
 
-        if (!matchConnectorShape(this.tkenit)) {
-            matchStatus = false;
-        }
+        matchGeneric(this.tkenit, "identifier");
+        matchGeneric(this.tkenit, "command_end");
 
-        if (!matchGeneric(this.tkenit, "identifier")) {
-            matchStatus = false;
-        }
+        return myAST;
 
-        if (matchGeneric(this.tkenit, "command_end")) {
-            matchStatus = false;
-        }
-
-        return matchStatus;
     }
 
-    public boolean matchShape(ListIterator<Token> tokens) {
-        boolean matchStatus = false;
-        Token tken = tokens.next();
-        tokens.remove();
-        if (tken.getType().matches("shape_rectangle|shape_circle")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-            matchStatus = true;
-
-        }
-        return matchStatus;
-    }
-
-    public boolean matchGeneric(ListIterator<Token> tokens, String tokenType) throws SyntacticException {
-        boolean matchStatus = false;
+    public AST matchGeneric(ListIterator<Token> tokens, String tokenType) throws SyntacticException {
+        AST newAst = new AST();
         if (tokens.hasNext()) {
             Token tken = tokens.next();
-            //tokens.remove();
             if (tken.getType().matches(tokenType)) {
-//                AST newAst = new AST();
-//                newAst.setToken(tken);
-//                ast.addChild(newAst);
-                matchStatus = true;
+                newAst.setToken(tken);
+                ast.addChild(newAst);
             } else {
-
-                throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType + ". \n I've founda token type: " + tken.getType() + " value:'" + tken.getValue() + "'");
+                throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType + ". \n I've found a token type: " + tken.getType() + " value:'" + tken.getValue() + "'");
             }
         } else {
             throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType);
         }
-        return matchStatus;
-
-    }
-
-    public boolean matchCommandEnd(ListIterator<Token> tokens) {
-        boolean matchStatus = true;
-        Token tken = tokens.next();
-        tokens.remove();
-        if (tken.getType().matches("command_end")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-        } else {
-            matchStatus = false;
-        }
-        return matchStatus;
-    }
-
-    private boolean matchColorDef(ListIterator<Token> tokens) {
-        boolean matchStatus = true;
-        Token tken = tokens.next();
-        tokens.remove();
-        if (tken.getType().matches("color_def")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-        } else {
-            matchStatus = false;
-        }
-        return matchStatus;
-    }
-
-    private boolean matchConnectorIn(ListIterator<Token> tkenit) {
-        boolean matchStatus = true;
-        Token tken = tkenit.next();
-        tkenit.remove();
-        if (tken.getType().matches("connector_in")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-        } else {
-            matchStatus = false;
-        }
-        return matchStatus;
+        return newAst;
     }
 
     private boolean matchConnectorShape(ListIterator<Token> tkenit) {
@@ -405,7 +292,6 @@ public class SyntacticAnalyzer {
         AST expAST = new AST();
 
         //matchExprFactor(tkenit);
-
         String lookString = lookaheadString(tkenit);
 
         while (lookString.matches("expression_operator_term|expression_operator_fact")) {
@@ -450,20 +336,6 @@ public class SyntacticAnalyzer {
 
     }
 
-    private boolean matchConnectorShapeRectangle(ListIterator<Token> tkenit) {
-        boolean matchStatus = false;
-        Token tken = tkenit.next();
-        tkenit.remove();
-        if (tken.getType().matches("shape_rectangle")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-            matchStatus = true;
-
-        }
-        return matchStatus;
-    }
-
     private boolean matchExpressionSeparator(ListIterator<Token> tkenit) {
         boolean matchStatus = false;
         Token tken = tkenit.next();
@@ -474,20 +346,6 @@ public class SyntacticAnalyzer {
             ast.addChild(newAst);
             matchStatus = true;
 
-        }
-        return matchStatus;
-    }
-
-    private boolean matchConnectorShapeCircle(ListIterator<Token> tkenit, String matchString) {
-        boolean matchStatus = true;
-        Token tken = tkenit.next();
-        tkenit.remove();
-        if (tken.getType().matches(matchString)) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-        } else {
-            matchStatus = false;
         }
         return matchStatus;
     }
