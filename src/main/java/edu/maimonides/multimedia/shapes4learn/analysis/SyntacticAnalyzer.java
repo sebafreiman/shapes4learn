@@ -51,13 +51,13 @@ public class SyntacticAnalyzer {
                     break;
                 case "command_setheight":
                     matchSetBaseHeight();
-//                    break;
-//                case "command_setradius":
-//                    matchSetRadius();
-//                    break;
-//                case "command_setposition":
-//                    matchSetPosition();
-//                    break;
+                    break;
+                case "command_setradius":
+                    matchSetRadius();
+                    break;
+                case "command_setposition":
+                    matchSetPosition();
+                    break;
                 default:
                     throw new SyntacticException("Syntactic Exception: Expected command but get: " + tken.getType() + " (" + tken.getValue() + ")");
             }
@@ -110,7 +110,7 @@ public class SyntacticAnalyzer {
 
         myAST = matchE(this.tkenit);
         matchGeneric(tkenit, "connector_in");
-        matchGeneric(this.tkenit, "shape_type_circle");
+        matchGeneric(this.tkenit, "shape_circle");
         matchGeneric(this.tkenit, "identifier");
         matchGeneric(this.tkenit, "command_end");
 
@@ -127,8 +127,11 @@ public class SyntacticAnalyzer {
         matchGeneric(this.tkenit, "expression_separator");
 
         myAST = matchE(this.tkenit);
-        matchGeneric(this.tkenit, "connector_shape");
+                matchGeneric(this.tkenit, "connector_in");
 
+        matchGeneric(this.tkenit, "shape_circle|shape_rectangle");
+
+        
         matchGeneric(this.tkenit, "identifier");
         matchGeneric(this.tkenit, "command_end");
 
@@ -152,19 +155,7 @@ public class SyntacticAnalyzer {
         return newAst;
     }
 
-    private boolean matchConnectorShape(ListIterator<Token> tkenit) {
-        boolean matchStatus = true;
-        Token tken = tkenit.next();
-        tkenit.remove();
-        if (tken.getType().matches("connector_shape")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-        } else {
-            matchStatus = false;
-        }
-        return matchStatus;
-    }
+
 
     /**
      * Verify if tokens in the list contains a valid expression.
@@ -336,19 +327,6 @@ public class SyntacticAnalyzer {
 
     }
 
-    private boolean matchExpressionSeparator(ListIterator<Token> tkenit) {
-        boolean matchStatus = false;
-        Token tken = tkenit.next();
-        tkenit.remove();
-        if (tken.getType().matches("expression_separator")) {
-            AST newAst = new AST();
-            newAst.setToken(tken);
-            ast.addChild(newAst);
-            matchStatus = true;
-
-        }
-        return matchStatus;
-    }
 
     /**
      * lookahead function check if the next token matches the type with the
