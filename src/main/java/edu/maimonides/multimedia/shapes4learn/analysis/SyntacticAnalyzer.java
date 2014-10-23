@@ -17,122 +17,120 @@ import java.util.Stack;
  */
 public class SyntacticAnalyzer {
 
-    AST ast;
+    AST synAST;
     ListIterator<Token> tkenit;
     Stack<Token> tkenStack;
 
     public SyntacticAnalyzer() {
         tkenStack = new Stack<Token>();
+        this.synAST = new AST();
+
     }
 
     public AST analyze(List<Token> tokens) throws SyntacticException {
-        this.ast = new AST();
 
         Token tken;
-        AST newAst;
+        AST newAST = new AST();
+
         this.tkenit = tokens.listIterator();
 
         while (this.tkenit.hasNext()) {
             tken = this.tkenit.next();
-            //this.tkenit.remove();
-            newAst = new AST();
-
-            this.ast.addChild(newAst);
             switch (tken.getType()) {
                 case "command_create":
-                    newAst = matchCreate();
-                    newAst.setToken(tken);
+                    newAST = matchCreate(tken);
                     break;
                 case "command_setcolor":
-                    matchSetColor();
+                    newAST = matchSetColor(tken);
                     break;
                 case "command_setbase":
-                    matchSetBaseHeight();
+                    newAST = matchSetBaseHeight(tken);
                     break;
                 case "command_setheight":
-                    matchSetBaseHeight();
+                    newAST = matchSetBaseHeight(tken);
                     break;
                 case "command_setradius":
-                    matchSetRadius();
+                    newAST = matchSetRadius(tken);
                     break;
                 case "command_setposition":
-                    matchSetPosition();
+                    newAST = matchSetPosition(tken);
                     break;
                 default:
                     throw new SyntacticException("Syntactic Exception: Expected command but get: " + tken.getType() + " (" + tken.getValue() + ")");
             }
-
+            this.synAST.addChild(newAST);
+            newAST = new AST();
         }
-
-        return ast;
+        return this.synAST;
     }
 
-    public AST matchSetBaseHeight() throws SyntacticException {
+    public AST matchSetBaseHeight(Token cmdToken) throws SyntacticException {
 //setbase [expression] in rectangle [id];
 
-        AST matchAST = new AST();
-        matchAST = matchE(this.tkenit);
+        AST myAST = new AST();
+        myAST.setToken(cmdToken);
+
+        myAST.addChild(matchE(this.tkenit));
         matchGeneric(this.tkenit, "connector_in");
-        matchGeneric(this.tkenit, "shape_rectangle");
-        matchGeneric(this.tkenit, "identifier");
+        myAST.addChild(matchGeneric(this.tkenit, "shape_rectangle"));
+        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
         matchGeneric(tkenit, "command_end");
-        return matchAST;
+        return myAST;
     }
 
-    public AST matchCreate() throws SyntacticException {
+    public AST matchCreate(Token cmdToken) throws SyntacticException {
         //create rectangle|circle [id];
-        boolean matchStatus;
-        matchStatus = true;
-        AST miAST = new AST();
-        matchGeneric(this.tkenit, "shape_rectangle|shape_circle");
-        matchGeneric(this.tkenit, "identifier");
+        AST myAST = new AST();
+        myAST.setToken(cmdToken);
+
+        myAST.addChild(matchGeneric(this.tkenit, "shape_rectangle|shape_circle"));
+        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
         matchGeneric(this.tkenit, "command_end");
 
-        return miAST;
+        return myAST;
 
     }
 
-    private AST matchSetColor() throws SyntacticException {
+    private AST matchSetColor(Token cmdToken) throws SyntacticException {
         //setcolor [color_def] in shape [id]; 
-        AST miAST = new AST();
-
-        matchGeneric(this.tkenit, "color_def");
+        AST myAST = new AST();
+        myAST.setToken(cmdToken);
+        myAST.addChild(matchGeneric(this.tkenit, "color_def"));
         matchGeneric(this.tkenit, "connector_in");
-        matchGeneric(this.tkenit, "shape_rectangle|shape_circle");
-        matchGeneric(this.tkenit, "identifier");
+        myAST.addChild(matchGeneric(this.tkenit, "shape_rectangle|shape_circle"));
+        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
         matchGeneric(this.tkenit, "command_end");
-        return miAST;
+        return myAST;
     }
 
-    private AST matchSetRadius() throws SyntacticException {
+    private AST matchSetRadius(Token cmdToken) throws SyntacticException {
         //setradius [expression] in circle [id];
         AST myAST = new AST();
+        myAST.setToken(cmdToken);
 
-        myAST = matchE(this.tkenit);
+        myAST.addChild(matchE(this.tkenit));
         matchGeneric(tkenit, "connector_in");
         matchGeneric(this.tkenit, "shape_circle");
-        matchGeneric(this.tkenit, "identifier");
+        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
         matchGeneric(this.tkenit, "command_end");
 
         return myAST;
     }
 
-    private AST matchSetPosition() throws SyntacticException {
-        //Set the 2D-position (x,y) for the shape given by the id: 
+    private AST matchSetPosition(Token cmdToken) throws SyntacticException {
         //setposition [expression],[expression] in shape [id];
         AST myAST = new AST();
 
-        myAST = matchE(this.tkenit);
-
+        myAST.setToken(cmdToken);
+        myAST.addChild(matchE(this.tkenit));
         matchGeneric(this.tkenit, "expression_separator");
 
-        myAST = matchE(this.tkenit);
-                matchGeneric(this.tkenit, "connector_in");
+        myAST.addChild(matchE(this.tkenit));
+        matchGeneric(this.tkenit, "connector_in");
 
         matchGeneric(this.tkenit, "shape_circle|shape_rectangle");
 
-        
-        matchGeneric(this.tkenit, "identifier");
+        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
         matchGeneric(this.tkenit, "command_end");
 
         return myAST;
@@ -140,22 +138,19 @@ public class SyntacticAnalyzer {
     }
 
     public AST matchGeneric(ListIterator<Token> tokens, String tokenType) throws SyntacticException {
-        AST newAst = new AST();
+        AST myAST = new AST();
         if (tokens.hasNext()) {
             Token tken = tokens.next();
             if (tken.getType().matches(tokenType)) {
-                newAst.setToken(tken);
-                ast.addChild(newAst);
+                myAST.setToken(tken);
             } else {
                 throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType + ". \n I've found a token type: " + tken.getType() + " value:'" + tken.getValue() + "'");
             }
         } else {
             throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType);
         }
-        return newAst;
+        return myAST;
     }
-
-
 
     /**
      * Verify if tokens in the list contains a valid expression.
@@ -326,7 +321,6 @@ public class SyntacticAnalyzer {
         return expAST;
 
     }
-
 
     /**
      * lookahead function check if the next token matches the type with the
