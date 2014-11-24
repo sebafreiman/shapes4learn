@@ -19,44 +19,44 @@ public class SyntacticAnalyzer {
 
     AST synAST;
     ListIterator<Token> tkenit;
-    Stack<Token> tkenStack;
+    Stack<Token> tkenStackInfix;
 
     public SyntacticAnalyzer() {
-        tkenStack = new Stack<Token>();
+        tkenStackInfix = new Stack<Token>();
         this.synAST = new AST();
 
     }
 
     public AST analyze(List<Token> tokens) throws SyntacticException {
 
-        Token tken;
+        String tkenString;
         AST newAST = new AST();
 
         this.tkenit = tokens.listIterator();
 
         while (this.tkenit.hasNext()) {
-            tken = this.tkenit.next();
-            switch (tken.getType()) {
+            tkenString = lookaheadString();
+            switch (tkenString) {
                 case "command_create":
-                    newAST = matchCreate(tken);
+                    newAST = matchCreate();
                     break;
                 case "command_setcolor":
-                    newAST = matchSetColor(tken);
+                    newAST = matchSetColor();
                     break;
                 case "command_setbase":
-                    newAST = matchSetBaseHeight(tken);
+                    newAST = matchSetBaseHeight();
                     break;
                 case "command_setheight":
-                    newAST = matchSetBaseHeight(tken);
+                    newAST = matchSetBaseHeight();
                     break;
                 case "command_setradius":
-                    newAST = matchSetRadius(tken);
+                    newAST = matchSetRadius();
                     break;
                 case "command_setposition":
-                    newAST = matchSetPosition(tken);
+                    newAST = matchSetPosition();
                     break;
                 default:
-                    throw new SyntacticException("Syntactic Exception: Expected command but get: " + tken.getType() + " (" + tken.getValue() + ")");
+                    throw new SyntacticException("Syntactic Exception: Expected command but get: " + tkenString );
             }
             this.synAST.addChild(newAST);
             newAST = new AST();
@@ -64,83 +64,82 @@ public class SyntacticAnalyzer {
         return this.synAST;
     }
 
-    public AST matchSetBaseHeight(Token cmdToken) throws SyntacticException {
+    public AST matchSetBaseHeight() throws SyntacticException {
 //setbase [expression] in rectangle [id];
 
-        AST myAST = new AST();
-        myAST.setToken(cmdToken);
+        AST myAST;
+        myAST = matchGeneric( "command_setbase");
 
-        myAST.addChild(matchE(this.tkenit));
-        matchGeneric(this.tkenit, "connector_in");
-        myAST.addChild(matchGeneric(this.tkenit, "shape_rectangle"));
-        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
-        matchGeneric(tkenit, "command_end");
+        myAST.addChild(matchE());
+        matchGeneric( "connector_in");
+        myAST.addChild(matchGeneric("shape_rectangle"));
+        myAST.addChild(matchGeneric( "identifier"));
+        matchGeneric("command_end");
         return myAST;
     }
 
-    public AST matchCreate(Token cmdToken) throws SyntacticException {
+    public AST matchCreate() throws SyntacticException {
         //create rectangle|circle [id];
-        AST myAST = new AST();
-        myAST.setToken(cmdToken);
+        AST myAST;
+        myAST = matchGeneric("command_create");
 
-        myAST.addChild(matchGeneric(this.tkenit, "shape_rectangle|shape_circle"));
-        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
-        matchGeneric(this.tkenit, "command_end");
+        myAST.addChild(matchGeneric("shape_rectangle|shape_circle"));
+        myAST.addChild(matchGeneric("identifier"));
+        matchGeneric("command_end");
 
         return myAST;
 
     }
 
-    private AST matchSetColor(Token cmdToken) throws SyntacticException {
+    private AST matchSetColor() throws SyntacticException {
         //setcolor [color_def] in shape [id]; 
-        AST myAST = new AST();
-        myAST.setToken(cmdToken);
-        myAST.addChild(matchGeneric(this.tkenit, "color_def"));
-        matchGeneric(this.tkenit, "connector_in");
-        myAST.addChild(matchGeneric(this.tkenit, "shape_rectangle|shape_circle"));
-        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
-        matchGeneric(this.tkenit, "command_end");
+        AST myAST;
+        myAST = matchGeneric("command_setcolor");
+        myAST.addChild(matchGeneric("color_def"));
+        matchGeneric("connector_in");
+        myAST.addChild(matchGeneric("shape_rectangle|shape_circle"));
+        myAST.addChild(matchGeneric("identifier"));
+        matchGeneric("command_end");
         return myAST;
     }
 
-    private AST matchSetRadius(Token cmdToken) throws SyntacticException {
+    private AST matchSetRadius() throws SyntacticException {
         //setradius [expression] in circle [id];
-        AST myAST = new AST();
-        myAST.setToken(cmdToken);
-
-        myAST.addChild(matchE(this.tkenit));
-        matchGeneric(tkenit, "connector_in");
-        matchGeneric(this.tkenit, "shape_circle");
-        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
-        matchGeneric(this.tkenit, "command_end");
+        AST myAST;
+        myAST = matchGeneric("command_setradius");
+        myAST.addChild(matchE());
+        matchGeneric("connector_in");
+        matchGeneric("shape_circle");
+        myAST.addChild(matchGeneric("identifier"));
+        matchGeneric("command_end");
 
         return myAST;
     }
 
-    private AST matchSetPosition(Token cmdToken) throws SyntacticException {
+    private AST matchSetPosition() throws SyntacticException {
         //setposition [expression],[expression] in shape [id];
-        AST myAST = new AST();
+        AST myAST;
+        myAST = matchGeneric("command_setposition");
 
-        myAST.setToken(cmdToken);
-        myAST.addChild(matchE(this.tkenit));
-        matchGeneric(this.tkenit, "expression_separator");
+        myAST.addChild(matchE());
+        matchGeneric("expression_separator");
 
-        myAST.addChild(matchE(this.tkenit));
-        matchGeneric(this.tkenit, "connector_in");
+        myAST.addChild(matchE());
+        matchGeneric("connector_in");
 
-        matchGeneric(this.tkenit, "shape_circle|shape_rectangle");
+        matchGeneric("shape_circle|shape_rectangle");
 
-        myAST.addChild(matchGeneric(this.tkenit, "identifier"));
-        matchGeneric(this.tkenit, "command_end");
+        myAST.addChild(matchGeneric("identifier"));
+        matchGeneric("command_end");
 
         return myAST;
 
     }
 
-    public AST matchGeneric(ListIterator<Token> tokens, String tokenType) throws SyntacticException {
+    public AST matchGeneric(String tokenType) throws SyntacticException {
         AST myAST = new AST();
-        if (tokens.hasNext()) {
-            Token tken = tokens.next();
+        if (this.tkenit.hasNext()) {
+            Token tken = this.tkenit.next();
             if (tken.getType().matches(tokenType)) {
                 myAST.setToken(tken);
             } else {
@@ -159,158 +158,166 @@ public class SyntacticAnalyzer {
      * @return
      * @throws SyntacticException
      */
-    private AST matchExpression(ListIterator<Token> tkenit) throws SyntacticException {
-
-        AST expAST = new AST(), childAST = new AST();
-
-        /*number] := [digit][number]|[digit]
-         A mathematical expression that supports numbers, addition, subtraction, multiplication, division and parenthesis. For example: 9+(4*(5-7)+8/2)
-         [expression] :=  [termino] + [termino] | [termino] - [termino] |  ( [expression] )
-         [termino] := [termino] * [termino] | [termino] / [termino] | [number]
-         */
-        /*
-         1+2+3+4
-         [number] := [digit][number]|[digit]
-         [expression] :=  [termino] | [termino] + [termino] | [termino] - [termino] 
-         [termino] :=  [factor] | [factor] * [factor] | [factor] / [factor]
-         [factor] := [number] | ( [expression] )
-         */
-        if (tkenit.hasNext()) {
-            Token tken = tkenit.next();
-            //tkenit.remove();
-            switch (tken.getType()) {
-                case "parenthesis_open":
-                    //expression
-                    expAST = matchExpression(tkenit);
-
-                    //matchExpression(this.tkenit);
-                    matchGeneric(this.tkenit, "parenthesis_close");
-
-                    if (lookahead(this.tkenit, "expression_operator_term|expression_operator_fact")) {
-                        expAST.addChild(matchExpression(this.tkenit));
-                    }
-                    break;
-
-                case "parenthesis_close":
-                    throw new SyntacticException("You've close a parenthesis but did't openen one.");
-                //break;
-
-                case "expression_number":
-                    //termino
-
-                    if (lookahead(this.tkenit, "expression_operator_term")) {
-                        expAST = matchExpression(tkenit);
-                        childAST.setToken(tken);
-                        expAST.addChild(childAST);
-
-                    } else if (lookahead(this.tkenit, "expression_operator_fact")) {
-                        expAST.addChild(matchExpression(this.tkenit));
-                        childAST.setToken(tken);
-                        expAST.addChild(childAST);
-
-                    } else if (lookahead(this.tkenit, "parethesis_open")) {
-                        expAST.addChild(matchExpression(this.tkenit));
-                        childAST.setToken(tken);
-                        expAST.addChild(childAST);
-
-                    } else {
-                        expAST.setToken(tken);
-                    }
-
-                    break;
-                case "expression_operator_term":
-                    expAST.setToken(tken);
-                    expAST.addChild(matchExpression(this.tkenit));
-
-                    break;
-                case "expression_operator_fact":
-                    expAST.setToken(tken);
-                    expAST.addChild(matchExpression(this.tkenit));
-
-                    break;
-                default:
-                    throw new SyntacticException("Syntactic exception: Not an expression: " + tken.getType() + " value:" + tken.getValue());
-
-            }
-
-        } else {
-            throw new SyntacticException("Syntactic exception: Expected expression");
-
-        }
-        return expAST;
-
-    }
-
-    private AST matchE(ListIterator<Token> tkenit) throws SyntacticException {
+//    private AST matchExpression(ListIterator<Token> tkenit) throws SyntacticException {
+//
+//        AST expAST = new AST(), childAST = new AST();
+//
+//        /*number] := [digit][number]|[digit]
+//         A mathematical expression that supports numbers, addition, subtraction, multiplication, division and parenthesis. For example: 9+(4*(5-7)+8/2)
+//         [expression] :=  [termino] + [termino] | [termino] - [termino] |  ( [expression] )
+//         [termino] := [termino] * [termino] | [termino] / [termino] | [number]
+//         */
+//        /*
+//         1+2+3+4
+//         [number] := [digit][number]|[digit]
+//         [expression] :=  [termino] | [termino] + [termino] | [termino] - [termino] 
+//         [termino] :=  [factor] | [factor] * [factor] | [factor] / [factor]
+//         [factor] := [number] | ( [expression] )
+//         */
+//        if (tkenit.hasNext()) {
+//            Token tken = tkenit.next();
+//            //tkenit.remove();
+//            switch (tken.getType()) {
+//                case "parenthesis_open":
+//                    //expression
+//                    expAST = matchExpression(tkenit);
+//
+//                    //matchExpression(this.tkenit);
+//                    matchGeneric(this.tkenit, "parenthesis_close");
+//
+//                    if (lookahead(this.tkenit, "expression_operator_term|expression_operator_fact")) {
+//                        expAST.addChild(matchExpression(this.tkenit));
+//                    }
+//                    break;
+//
+//                case "parenthesis_close":
+//                    throw new SyntacticException("You've close a parenthesis but did't openen one.");
+//                //break;
+//
+//                case "expression_number":
+//                    //termino
+//
+//                    if (lookahead(this.tkenit, "expression_operator_term")) {
+//                        expAST = matchExpression(tkenit);
+//                        childAST.setToken(tken);
+//                        expAST.addChild(childAST);
+//
+//                    } else if (lookahead(this.tkenit, "expression_operator_fact")) {
+//                        expAST.addChild(matchExpression(this.tkenit));
+//                        childAST.setToken(tken);
+//                        expAST.addChild(childAST);
+//
+//                    } else if (lookahead(this.tkenit, "parethesis_open")) {
+//                        expAST.addChild(matchExpression(this.tkenit));
+//                        childAST.setToken(tken);
+//                        expAST.addChild(childAST);
+//
+//                    } else {
+//                        expAST.setToken(tken);
+//                    }
+//
+//                    break;
+//                case "expression_operator_term":
+//                    expAST.setToken(tken);
+//                    expAST.addChild(matchExpression(this.tkenit));
+//
+//                    break;
+//                case "expression_operator_fact":
+//                    expAST.setToken(tken);
+//                    expAST.addChild(matchExpression(this.tkenit));
+//
+//                    break;
+//                default:
+//                    throw new SyntacticException("Syntactic exception: Not an expression: " + tken.getType() + " value:" + tken.getValue());
+//
+//            }
+//
+//        } else {
+//            throw new SyntacticException("Syntactic exception: Expected expression");
+//
+//        }
+//        return expAST;
+//
+//    }
+    private AST matchE() throws SyntacticException {
         /*
          <E> ::= <T> <E'>  ->MatchE
          <E'> ::= + <E> | - <E> | ε -> matchExprTerm
          <T> ::= <F> <T'>
          <T'> ::= * <T> | / <T> | ε
-         <F> ::= [N] | ( <E> ) | - <F> matchExprFact
+         <F> ::= [N] | ( <E> ) | - <F> matchExprFactor
          */
-        Token tken;
         AST expAST = new AST();
-        String lookStr = lookaheadString(tkenit);
+        int firstTokenIndex = this.tkenit.nextIndex();
+        String lookStr = lookaheadString();
         switch (lookStr) {
             case "expression_number":
-                matchExprFactor(tkenit);
-                matchExprTerm(tkenit);
+                expAST.addChild(matchExprFactor());
+                expAST.addChild(matchExprTerm());
                 break;
             case "parenthesis_open":
-                this.tkenStack.add(tkenit.next());
-                matchE(tkenit);
-                matchGeneric(tkenit, "parenthesis_close");
-                if (lookahead(tkenit, "expression_operator_term")) {
-                    matchExprTerm(tkenit);
+                //this.tkenStackInfix.add(tkenit.next());
+                matchGeneric("parenthesis_open");
+                expAST.addChild(matchE());
+                matchGeneric("parenthesis_close");
+                if (lookahead("expression_operator_term|expression_operator_fact")) {
+                    expAST.addChild(matchExprTerm());
                 }
                 break;
+
             default:
                 throw new SyntacticException("Syntact error: Expected expression but get something else:" + lookStr);
         }
-
         //matchExprFactor(tkenit);
+        int lastTokenIndex = tkenit.nextIndex() - 1;
         return expAST;
 
     }
 
-    private AST matchExprTerm(ListIterator<Token> tkenit) throws SyntacticException {
+    private AST matchExprTerm() throws SyntacticException {
         AST expAST = new AST();
 
         //matchExprFactor(tkenit);
-        String lookString = lookaheadString(tkenit);
+        String lookString = lookaheadString();
 
         while (lookString.matches("expression_operator_term|expression_operator_fact")) {
             switch (lookString) {
                 case "expression_operator_term":
-                    this.tkenStack.add(tkenit.next());
-                    matchExprFactor(tkenit);
-                    matchExprTerm(tkenit);
+                    //this.tkenStackInfix.add(tkenit.next());
+                    expAST.addChild(new AST(null, this.tkenit.next()));
+
+                    expAST.addChild(matchExprFactor());
+                    expAST.addChild(matchExprTerm());
                     break;
                 case "expression_operator_fact":
-                    this.tkenStack.add(tkenit.next());
-                    matchExprFactor(tkenit);
+                    //this.tkenStackInfix.add(tkenit.next());
+                    matchGeneric("expression_operator_fact");
+                    expAST.addChild(matchExprFactor());
                     break;
 
             }
-            lookString = lookaheadString(tkenit);
+            lookString = lookaheadString();
         }
 
         return expAST;
 
     }
 
-    private AST matchExprFactor(ListIterator<Token> tkenit) throws SyntacticException {
+    private AST matchExprFactor() throws SyntacticException {
         AST expAST = new AST();
-        String lookString = lookaheadString(tkenit);
+        String lookString = lookaheadString();
         switch (lookString) {
             case "expression_number":
-                this.tkenStack.add(tkenit.next());
+                //this.tkenStackInfix.add(tkenit.next());
+                //expAST.addChild(new AST(null , tkenit.next()));
+                expAST.addChild(matchGeneric("expression_number"));
                 break;
             case "parenthesis_open":
-                this.tkenStack.add(tkenit.next());
-                matchE(tkenit);
-                matchGeneric(tkenit, "parenthesis_close");
+                //this.tkenStackInfix.add(tkenit.next());
+                //expAST.addChild(new AST(null, tkenit.next()));
+                expAST.addChild(matchGeneric("parenthesis_open"));
+                expAST.addChild(matchE());
+                expAST.addChild(matchGeneric("parenthesis_close"));
                 break;
             case "":
                 break;
@@ -330,25 +337,25 @@ public class SyntacticAnalyzer {
      * @param typeString
      * @return
      */
-    private boolean lookahead(ListIterator<Token> tkenit, String typeString) {
+    private boolean lookahead(String typeString) {
         boolean matchStatus = false;
-        if (tkenit.hasNext()) {
-            Token tken = tkenit.next();
+        if (this.tkenit.hasNext()) {
+            Token tken = this.tkenit.next();
             if (tken.getType().matches(typeString)) {
                 matchStatus = true;
             }
-            tkenit.previous();
+            this.tkenit.previous();
         }
 
         return matchStatus;
     }
 
-    private String lookaheadString(ListIterator<Token> tkenit) {
+    private String lookaheadString() {
         String matchStatus = "";
-        if (tkenit.hasNext()) {
-            Token tken = tkenit.next();
+        if (this.tkenit.hasNext()) {
+            Token tken = this.tkenit.next();
             matchStatus = tken.getType();
-            tkenit.previous();
+            this.tkenit.previous();
         }
 
         return matchStatus;

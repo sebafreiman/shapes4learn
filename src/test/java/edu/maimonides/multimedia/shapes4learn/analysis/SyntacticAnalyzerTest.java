@@ -7,6 +7,7 @@ package edu.maimonides.multimedia.shapes4learn.analysis;
 
 import edu.maimonides.multimedia.shapes4learn.model.AST;
 import edu.maimonides.multimedia.shapes4learn.model.Token;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +25,8 @@ import static org.junit.Assert.*;
 public class SyntacticAnalyzerTest {
 
     AST ast;
-    List<Token> lexATokens;
+    List<Token> lexCreate, lexSetBase, lexSet;
+    List<Token> lexAll;
 
     public SyntacticAnalyzerTest() {
     }
@@ -40,9 +42,22 @@ public class SyntacticAnalyzerTest {
     @Before
     public void setUp() {
         LexicalAnalyzer lexA = new LexicalAnalyzer();
+        lexAll = new LinkedList<>();
+
         ast = new AST();
         try {
-            lexATokens = lexA.analyze("create circle micircle ;");
+            lexCreate = lexA.analyze("create circle micircle ;");
+            lexSetBase = lexA.analyze("setbase 1 + 2 in rectangle micircle ; ");
+            lexAll.addAll(lexCreate.subList(0, lexCreate.size()));
+            lexAll.addAll(lexSetBase.subList(0, lexSetBase.size()));
+
+            lexSet = lexA.analyze("setradius 6 * 5 * 4 + 1 + 2  in circle micircle ; ");
+            lexAll.addAll(lexSet.subList(0, lexSet.size()));
+
+            lexSet = lexA.analyze("setposition 1 * 2 + 3 , 7 + 7 * 2 - 1 in circle miid ; ");
+            lexAll.addAll(lexSet.subList(0, lexSet.size()));
+
+
         } catch (LexicalException ex) {
             Logger.getLogger(SyntacticAnalyzerTest.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -57,12 +72,21 @@ public class SyntacticAnalyzerTest {
      * Test of analyze method, of class SyntacticAnalyzer.
      */
     @Test
-    public void testAnalyze() throws Exception {
-        System.out.println("analyze");
+    public void testAnalyzeAll() throws Exception {
+        System.out.println("analyze create");
         SyntacticAnalyzer instance = new SyntacticAnalyzer();
-        AST result = instance.analyze(lexATokens);
+        AST result = instance.analyze(lexAll);
 
-        assertEquals(10, result.listChildren().size());
+        assertEquals(4, result.listChildren().size());
+    }
+
+    @Test
+    public void testAnalyzeSetBase() throws Exception {
+        System.out.println("analyze setbase");
+        SyntacticAnalyzer instance = new SyntacticAnalyzer();
+        AST result = instance.analyze(lexSetBase);
+
+        assertEquals(1, result.listChildren().size());
     }
 
 }

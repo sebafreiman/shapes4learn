@@ -54,7 +54,7 @@ public class LexicalAnalyzerTest {
         assertEquals("command_create", result.get(0).getType());
 
         assertEquals("rectangle", result.get(1).getValue());
-        assertEquals("shape_type", result.get(1).getType());
+        assertEquals("shape_rectangle", result.get(1).getType());
 
         assertEquals("mirectangle", result.get(2).getValue());
         assertEquals("identifier", result.get(2).getType());
@@ -75,13 +75,13 @@ public class LexicalAnalyzerTest {
         assertEquals("command_setbase", result.get(0).getType());
 
         assertEquals("1234", result.get(1).getValue());
-        assertEquals("expression", result.get(1).getType());
+        assertEquals("expression_number", result.get(1).getType());
 
         assertEquals("in", result.get(2).getValue());
         assertEquals("connector_in", result.get(2).getType());
 
         assertEquals("rectangle", result.get(3).getValue());
-        assertEquals("shape_type", result.get(3).getType());
+        assertEquals("shape_rectangle", result.get(3).getType());
 
         assertEquals("mirectangle", result.get(4).getValue());
         assertEquals("identifier", result.get(4).getType());
@@ -102,19 +102,19 @@ public class LexicalAnalyzerTest {
         assertEquals("command_setheight", result.get(0).getType());
 
         assertEquals("1", result.get(1).getValue());
-        assertEquals("expression", result.get(1).getType());
+        assertEquals("expression_number", result.get(1).getType());
 
         assertEquals("+", result.get(2).getValue());
-        assertEquals("expression", result.get(2).getType());
+        assertEquals("expression_operator_term", result.get(2).getType());
 
         assertEquals("2", result.get(3).getValue());
-        assertEquals("expression", result.get(3).getType());
+        assertEquals("expression_number", result.get(3).getType());
 
         assertEquals("in", result.get(4).getValue());
         assertEquals("connector_in", result.get(4).getType());
 
         assertEquals("rectangle", result.get(5).getValue());
-        assertEquals("shape_type", result.get(5).getType());
+        assertEquals("shape_rectangle", result.get(5).getType());
 
         assertEquals("mirectangle", result.get(6).getValue());
         assertEquals("identifier", result.get(6).getType());
@@ -135,13 +135,13 @@ public class LexicalAnalyzerTest {
         assertEquals("command_setradius", result.get(0).getType());
 
         assertEquals("92", result.get(1).getValue());
-        assertEquals("expression", result.get(1).getType());
+        assertEquals("expression_number", result.get(1).getType());
 
         assertEquals("in", result.get(2).getValue());
         assertEquals("connector_in", result.get(2).getType());
 
         assertEquals("circle", result.get(3).getValue());
-        assertEquals("shape_type", result.get(3).getType());
+        assertEquals("shape_circle", result.get(3).getType());
 
         assertEquals("micircle", result.get(4).getValue());
         assertEquals("identifier", result.get(4).getType());

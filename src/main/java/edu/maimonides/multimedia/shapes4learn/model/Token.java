@@ -66,8 +66,10 @@ public class Token {
             //} else if (value.matches("(\\+|-|\\*|/|[0-9])*")) {
         } else if (value.matches("([0-9])*")) {
             this.setType("expression_number");
-        } else if (value.matches("\\+|-|\\*|/|")) {
-            this.setType("expression_operator");
+        } else if (value.matches("\\*|/")) {
+            this.setType("expression_operator_fact");
+        } else if (value.matches("\\+|-")) {
+            this.setType("expression_operator_term");
         } else if (value.matches("\\(")) {
             this.setType("parenthesis_open");
         } else if (value.matches("\\)")) {
