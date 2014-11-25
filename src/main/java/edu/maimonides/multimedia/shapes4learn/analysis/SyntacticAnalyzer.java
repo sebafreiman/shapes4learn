@@ -4,6 +4,7 @@ import java.util.List;
 
 import edu.maimonides.multimedia.shapes4learn.model.AST;
 import edu.maimonides.multimedia.shapes4learn.model.Token;
+import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Stack;
 
@@ -17,12 +18,12 @@ import java.util.Stack;
  */
 public class SyntacticAnalyzer {
 
-    AST synAST;
-    ListIterator<Token> tkenit;
-    Stack<Token> tkenStackInfix;
+    private AST synAST;
+    private ListIterator<Token> tkenit;
+    private LinkedList<Token> tkenStackInfix;
 
     public SyntacticAnalyzer() {
-        tkenStackInfix = new Stack<Token>();
+        this.tkenStackInfix = new LinkedList<Token>();
         this.synAST = new AST();
 
     }
@@ -30,7 +31,7 @@ public class SyntacticAnalyzer {
     public AST analyze(List<Token> tokens) throws SyntacticException {
 
         String tkenString;
-        AST newAST = new AST();
+        AST newAST;
 
         this.tkenit = tokens.listIterator();
 
@@ -56,33 +57,40 @@ public class SyntacticAnalyzer {
                     newAST = matchSetPosition();
                     break;
                 default:
-                    throw new SyntacticException("Syntactic Exception: Expected command but get: " + tkenString );
+                    throw new SyntacticException("Syntactic Exception: Expected command but get: " + tkenString);
             }
             this.synAST.addChild(newAST);
-            newAST = new AST();
         }
         return this.synAST;
     }
 
+    /**
+     * setbase [expression] in rectangle [id];
+     *
+     * @return AST
+     * @throws SyntacticException
+     */
     public AST matchSetBaseHeight() throws SyntacticException {
-//setbase [expression] in rectangle [id];
 
         AST myAST;
-        myAST = matchGeneric( "command_setbase");
+        myAST = matchGeneric("command_setbase");
 
-        myAST.addChild(matchE());
-        matchGeneric( "connector_in");
+        matchE();
+        myAST.addChild(infixConverterToAST(this.tkenStackInfix));
+        matchGeneric("connector_in");
         myAST.addChild(matchGeneric("shape_rectangle"));
-        myAST.addChild(matchGeneric( "identifier"));
+        myAST.addChild(matchGeneric("identifier"));
         matchGeneric("command_end");
         return myAST;
     }
 
+    /**
+     * @return @throws SyntacticException
+     */
     public AST matchCreate() throws SyntacticException {
         //create rectangle|circle [id];
         AST myAST;
         myAST = matchGeneric("command_create");
-
         myAST.addChild(matchGeneric("shape_rectangle|shape_circle"));
         myAST.addChild(matchGeneric("identifier"));
         matchGeneric("command_end");
@@ -91,6 +99,10 @@ public class SyntacticAnalyzer {
 
     }
 
+    /**
+     *
+     * @return @throws SyntacticException
+     */
     private AST matchSetColor() throws SyntacticException {
         //setcolor [color_def] in shape [id]; 
         AST myAST;
@@ -103,6 +115,10 @@ public class SyntacticAnalyzer {
         return myAST;
     }
 
+    /**
+     *
+     * @return @throws SyntacticException
+     */
     private AST matchSetRadius() throws SyntacticException {
         //setradius [expression] in circle [id];
         AST myAST;
@@ -116,15 +132,21 @@ public class SyntacticAnalyzer {
         return myAST;
     }
 
+    /**
+     *
+     * @return @throws SyntacticException
+     */
     private AST matchSetPosition() throws SyntacticException {
         //setposition [expression],[expression] in shape [id];
         AST myAST;
         myAST = matchGeneric("command_setposition");
 
-        myAST.addChild(matchE());
+        matchE();
+        myAST.addChild(infixConverterToAST(this.tkenStackInfix));
         matchGeneric("expression_separator");
 
-        myAST.addChild(matchE());
+        matchE();
+        myAST.addChild(infixConverterToAST(this.tkenStackInfix));
         matchGeneric("connector_in");
 
         matchGeneric("shape_circle|shape_rectangle");
@@ -142,6 +164,22 @@ public class SyntacticAnalyzer {
             Token tken = this.tkenit.next();
             if (tken.getType().matches(tokenType)) {
                 myAST.setToken(tken);
+            } else {
+                throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType + ". \n I've found a token type: " + tken.getType() + " value:'" + tken.getValue() + "'");
+            }
+        } else {
+            throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType);
+        }
+        return myAST;
+    }
+
+    public AST matchGenericExpr(String tokenType) throws SyntacticException {
+        AST myAST = new AST();
+        if (this.tkenit.hasNext()) {
+            Token tken = this.tkenit.next();
+            if (tken.getType().matches(tokenType)) {
+                myAST.setToken(tken);
+                this.tkenStackInfix.add(tken);
             } else {
                 throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType + ". \n I've found a token type: " + tken.getType() + " value:'" + tken.getValue() + "'");
             }
@@ -239,6 +277,12 @@ public class SyntacticAnalyzer {
 //        return expAST;
 //
 //    }
+    /**
+     * matchE()
+     *
+     * @return
+     * @throws SyntacticException
+     */
     private AST matchE() throws SyntacticException {
         /*
          <E> ::= <T> <E'>  ->MatchE
@@ -248,51 +292,42 @@ public class SyntacticAnalyzer {
          <F> ::= [N] | ( <E> ) | - <F> matchExprFactor
          */
         AST expAST = new AST();
-        int firstTokenIndex = this.tkenit.nextIndex();
         String lookStr = lookaheadString();
         switch (lookStr) {
             case "expression_number":
-                expAST.addChild(matchExprFactor());
-                expAST.addChild(matchExprTerm());
+                matchExprFactor();
+                matchExprTerm();
                 break;
             case "parenthesis_open":
-                //this.tkenStackInfix.add(tkenit.next());
-                matchGeneric("parenthesis_open");
-                expAST.addChild(matchE());
-                matchGeneric("parenthesis_close");
+                matchGenericExpr("parenthesis_open");
+                matchE();
+                matchGenericExpr("parenthesis_close");
                 if (lookahead("expression_operator_term|expression_operator_fact")) {
-                    expAST.addChild(matchExprTerm());
+                    matchExprTerm();
                 }
                 break;
 
             default:
                 throw new SyntacticException("Syntact error: Expected expression but get something else:" + lookStr);
         }
-        //matchExprFactor(tkenit);
-        int lastTokenIndex = tkenit.nextIndex() - 1;
         return expAST;
 
     }
 
     private AST matchExprTerm() throws SyntacticException {
         AST expAST = new AST();
-
-        //matchExprFactor(tkenit);
         String lookString = lookaheadString();
 
         while (lookString.matches("expression_operator_term|expression_operator_fact")) {
             switch (lookString) {
                 case "expression_operator_term":
-                    //this.tkenStackInfix.add(tkenit.next());
-                    expAST.addChild(new AST(null, this.tkenit.next()));
-
-                    expAST.addChild(matchExprFactor());
-                    expAST.addChild(matchExprTerm());
+                    matchGenericExpr("expression_operator_term");
+                    matchExprFactor();
+                    matchExprTerm();
                     break;
                 case "expression_operator_fact":
-                    //this.tkenStackInfix.add(tkenit.next());
-                    matchGeneric("expression_operator_fact");
-                    expAST.addChild(matchExprFactor());
+                    matchGenericExpr("expression_operator_fact");
+                    matchExprFactor();
                     break;
 
             }
@@ -308,16 +343,12 @@ public class SyntacticAnalyzer {
         String lookString = lookaheadString();
         switch (lookString) {
             case "expression_number":
-                //this.tkenStackInfix.add(tkenit.next());
-                //expAST.addChild(new AST(null , tkenit.next()));
-                expAST.addChild(matchGeneric("expression_number"));
+                matchGenericExpr("expression_number");
                 break;
             case "parenthesis_open":
-                //this.tkenStackInfix.add(tkenit.next());
-                //expAST.addChild(new AST(null, tkenit.next()));
-                expAST.addChild(matchGeneric("parenthesis_open"));
-                expAST.addChild(matchE());
-                expAST.addChild(matchGeneric("parenthesis_close"));
+                matchGenericExpr("parenthesis_open");
+                matchE();
+                matchGenericExpr("parenthesis_close");
                 break;
             case "":
                 break;
@@ -361,4 +392,139 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
+    LinkedList ArismeticInfixToPrefix(LinkedList<Token> infixStack) {
+        LinkedList<Token> preStack = new LinkedList<Token>(); //stack intermedio
+        LinkedList<Token> prefix = new LinkedList<Token>(); // notation prefix
+        Token token;
+        String tokenType;
+
+        while (!infixStack.isEmpty()) {
+            token = infixStack.getLast();
+            tokenType = token.getType();
+            if (tokenType.equals("expression_operator_fact") || tokenType.equals("expression_operator_term")) {
+                prefix.push(token);
+            } else {
+                if (tokenType.equals("parenthesis_open")) {
+                    preStack.push(token);
+                } else if (tokenType.equals("parenthesis_close")) {
+                    while (!preStack.isEmpty() && !preStack.getLast().getType().equals("parenthesis_open")) {
+                        prefix.push(preStack.pollLast());
+                    }
+
+                    if (!preStack.isEmpty()) {
+                        token = preStack.pop();
+                    }
+
+                } else {
+                    if (!preStack.isEmpty() && prcd(preStack.getFirst()) <= prcd(token)) {
+                        preStack.push(token);
+                    } else {
+                        while (!preStack.isEmpty() && prcd(preStack.getFirst()) >= prcd(token)) {
+                            prefix.push(preStack.pop());
+                        }
+                        preStack.push(token);
+                    }
+                }
+            }
+            infixStack.pollLast();
+
+        }
+        while (!preStack.isEmpty()) {
+            prefix.add(preStack.pop());
+
+        }
+        return prefix;
+
+    }
+
+    /*
+     Order of precedence in arismetic expressions
+    
+     */
+    private int prcd(Token mToken) {
+        switch (mToken.getType()) {
+
+            case "expression_operator_fact":// * /
+                return 4;
+            case "expression_operator_term"://+ -
+                return 2;
+            case "parenthesis_open":
+                return 1;
+            case "parenthesis_close":
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Converts infix linked list to a AST
+     *
+     * @param infixExp
+     * @return AST
+     */
+    AST infixConverterToAST(LinkedList<Token> infixExp) {
+        LinkedList<Token> STACK = new LinkedList<Token>(); //stack intermedio
+        LinkedList<Token> prefixExp = new LinkedList<Token>(); // notation prefix
+        AST myAST;
+        Token token;
+        String tokenType;
+
+        while (!infixExp.isEmpty()) {
+            token = infixExp.pollLast();
+            tokenType = token.getType();
+            switch (tokenType) {
+                case "expression_operator_fact":
+                case "expression_operator_term":
+                    while (!STACK.isEmpty() && (prcd(STACK.getFirst()) > prcd(token))) {
+                        prefixExp.push(STACK.poll());
+                    }
+
+                    STACK.push(token);
+                    break;
+                case "parenthesis_close": //right parenthesis
+                    STACK.push(token);
+                    break;
+                case "parenthesis_open": //left parenthesis
+                    while (!STACK.isEmpty() && !STACK.getFirst().matchType("parenthesis_close")) {
+                        prefixExp.push(STACK.pop());
+                    }
+                    STACK.pop();
+
+                    break;
+                default:
+                    prefixExp.push(token);
+                    break;
+            }
+
+        }
+        while (!STACK.isEmpty()) {
+            prefixExp.push(STACK.pop());
+        }
+        myAST = buildArismeticAST(prefixExp);
+
+        return myAST;
+    }
+
+    /**
+     * @param B return AST
+     */
+    AST buildArismeticAST(LinkedList<Token> B) {
+        AST myAST = new AST();
+        if (!B.isEmpty()) {
+            switch (B.getFirst().getType()) {
+                case "expression_operator_term":
+                case "expression_operator_fact":
+                    myAST.setToken(B.pop());
+                    myAST.addChild(buildArismeticAST(B));
+                    myAST.addChild(buildArismeticAST(B));
+                    break;
+                case "expression_number":
+                    myAST.setToken(B.pop());
+                    break;
+            }
+
+        }
+        return myAST;
+    }
 }

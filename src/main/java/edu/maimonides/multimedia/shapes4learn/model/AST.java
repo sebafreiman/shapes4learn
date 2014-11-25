@@ -17,12 +17,12 @@ public class AST {
      * The {@link AST} children.
      */
     private List<AST> children;
+    private Token token;
 
     public AST(List<AST> children, Token token) {
         this.children = children;
         this.token = token;
     }
-    private Token token;
 
     public void setToken(Token token) {
         this.token = token;
@@ -31,7 +31,6 @@ public class AST {
     public Token getToken() {
         return this.token;
     }
-    // TODO Implement attributes.
 
     public AST() {
         this.children = new LinkedList<>();

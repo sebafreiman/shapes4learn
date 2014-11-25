@@ -23,47 +23,46 @@ import static org.junit.Assert.*;
  * @author sfreiman
  */
 public class SyntacticAnalyzerTest {
-
+    
     AST ast;
     List<Token> lexCreate, lexSetBase, lexSet;
     List<Token> lexAll;
-
+    
     public SyntacticAnalyzerTest() {
     }
-
+    
     @BeforeClass
     public static void setUpClass() {
     }
-
+    
     @AfterClass
     public static void tearDownClass() {
     }
-
+    
     @Before
     public void setUp() {
         LexicalAnalyzer lexA = new LexicalAnalyzer();
         lexAll = new LinkedList<>();
-
+        
         ast = new AST();
         try {
             lexCreate = lexA.analyze("create circle micircle ;");
             lexSetBase = lexA.analyze("setbase 1 + 2 in rectangle micircle ; ");
             lexAll.addAll(lexCreate.subList(0, lexCreate.size()));
             lexAll.addAll(lexSetBase.subList(0, lexSetBase.size()));
-
-            lexSet = lexA.analyze("setradius 6 * 5 * 4 + 1 + 2  in circle micircle ; ");
+            
+            lexSet = lexA.analyze("setradius ( 6 * ( 5 * 4 )  +  ( 1 ) ) + ( 2 )  in circle micircle ; ");
             lexAll.addAll(lexSet.subList(0, lexSet.size()));
-
+            
             lexSet = lexA.analyze("setposition 1 * 2 + 3 , 7 + 7 * 2 - 1 in circle miid ; ");
             lexAll.addAll(lexSet.subList(0, lexSet.size()));
-
-
+            
         } catch (LexicalException ex) {
             Logger.getLogger(SyntacticAnalyzerTest.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
     }
-
+    
     @After
     public void tearDown() {
     }
@@ -76,17 +75,27 @@ public class SyntacticAnalyzerTest {
         System.out.println("analyze create");
         SyntacticAnalyzer instance = new SyntacticAnalyzer();
         AST result = instance.analyze(lexAll);
-
+        
         assertEquals(4, result.listChildren().size());
     }
-
+    
     @Test
     public void testAnalyzeSetBase() throws Exception {
         System.out.println("analyze setbase");
         SyntacticAnalyzer instance = new SyntacticAnalyzer();
         AST result = instance.analyze(lexSetBase);
-
+        
         assertEquals(1, result.listChildren().size());
     }
-
+    
+    @Test
+    public void testInfitToPrefix() throws Exception {
+        LexicalAnalyzer lexB = new LexicalAnalyzer();
+        
+        System.out.println("Infix to Prefix Test");
+        SyntacticAnalyzer instance = new SyntacticAnalyzer();
+        AST result = instance.infixConverterToAST((LinkedList<Token>) lexB.analyze("( 1 / 0 )"));
+        assertEquals("expression_operator_fact", result.getToken().getType());
+    }
+    
 }
