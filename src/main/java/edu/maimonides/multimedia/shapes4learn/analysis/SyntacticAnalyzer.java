@@ -73,7 +73,7 @@ public class SyntacticAnalyzer {
     public AST matchSetBaseHeight() throws SyntacticException {
 
         AST myAST;
-        myAST = matchGeneric("command_setbase");
+        myAST = matchGeneric("command_setbase|command_setheight");
 
         matchE();
         myAST.addChild(infixConverterToAST(this.tkenStackInfix));
@@ -190,94 +190,6 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Verify if tokens in the list contains a valid expression.
-     *
-     * @param tkenit
-     * @return
-     * @throws SyntacticException
-     */
-//    private AST matchExpression(ListIterator<Token> tkenit) throws SyntacticException {
-//
-//        AST expAST = new AST(), childAST = new AST();
-//
-//        /*number] := [digit][number]|[digit]
-//         A mathematical expression that supports numbers, addition, subtraction, multiplication, division and parenthesis. For example: 9+(4*(5-7)+8/2)
-//         [expression] :=  [termino] + [termino] | [termino] - [termino] |  ( [expression] )
-//         [termino] := [termino] * [termino] | [termino] / [termino] | [number]
-//         */
-//        /*
-//         1+2+3+4
-//         [number] := [digit][number]|[digit]
-//         [expression] :=  [termino] | [termino] + [termino] | [termino] - [termino] 
-//         [termino] :=  [factor] | [factor] * [factor] | [factor] / [factor]
-//         [factor] := [number] | ( [expression] )
-//         */
-//        if (tkenit.hasNext()) {
-//            Token tken = tkenit.next();
-//            //tkenit.remove();
-//            switch (tken.getType()) {
-//                case "parenthesis_open":
-//                    //expression
-//                    expAST = matchExpression(tkenit);
-//
-//                    //matchExpression(this.tkenit);
-//                    matchGeneric(this.tkenit, "parenthesis_close");
-//
-//                    if (lookahead(this.tkenit, "expression_operator_term|expression_operator_fact")) {
-//                        expAST.addChild(matchExpression(this.tkenit));
-//                    }
-//                    break;
-//
-//                case "parenthesis_close":
-//                    throw new SyntacticException("You've close a parenthesis but did't openen one.");
-//                //break;
-//
-//                case "expression_number":
-//                    //termino
-//
-//                    if (lookahead(this.tkenit, "expression_operator_term")) {
-//                        expAST = matchExpression(tkenit);
-//                        childAST.setToken(tken);
-//                        expAST.addChild(childAST);
-//
-//                    } else if (lookahead(this.tkenit, "expression_operator_fact")) {
-//                        expAST.addChild(matchExpression(this.tkenit));
-//                        childAST.setToken(tken);
-//                        expAST.addChild(childAST);
-//
-//                    } else if (lookahead(this.tkenit, "parethesis_open")) {
-//                        expAST.addChild(matchExpression(this.tkenit));
-//                        childAST.setToken(tken);
-//                        expAST.addChild(childAST);
-//
-//                    } else {
-//                        expAST.setToken(tken);
-//                    }
-//
-//                    break;
-//                case "expression_operator_term":
-//                    expAST.setToken(tken);
-//                    expAST.addChild(matchExpression(this.tkenit));
-//
-//                    break;
-//                case "expression_operator_fact":
-//                    expAST.setToken(tken);
-//                    expAST.addChild(matchExpression(this.tkenit));
-//
-//                    break;
-//                default:
-//                    throw new SyntacticException("Syntactic exception: Not an expression: " + tken.getType() + " value:" + tken.getValue());
-//
-//            }
-//
-//        } else {
-//            throw new SyntacticException("Syntactic exception: Expected expression");
-//
-//        }
-//        return expAST;
-//
-//    }
-    /**
      * matchE()
      *
      * @return
@@ -302,7 +214,7 @@ public class SyntacticAnalyzer {
                 matchGenericExpr("parenthesis_open");
                 matchE();
                 matchGenericExpr("parenthesis_close");
-                if (lookahead("expression_operator_term|expression_operator_fact")) {
+                if (lookahead("expression_op.*")) {//replace with *
                     matchExprTerm();
                 }
                 break;
@@ -318,15 +230,17 @@ public class SyntacticAnalyzer {
         AST expAST = new AST();
         String lookString = lookaheadString();
 
-        while (lookString.matches("expression_operator_term|expression_operator_fact")) {
+        while (lookString.matches("expression_op.*")) {
             switch (lookString) {
-                case "expression_operator_term":
-                    matchGenericExpr("expression_operator_term");
+                case "expression_op_addition":
+                case "expression_op_subtract":
+                    matchGenericExpr("expression_op_subtract|expression_op_addition");
                     matchExprFactor();
                     matchExprTerm();
                     break;
-                case "expression_operator_fact":
-                    matchGenericExpr("expression_operator_fact");
+                case "expression_op_product":
+                case "expression_op_division":
+                    matchGenericExpr("expression_op_product|expression_op_division");
                     matchExprFactor();
                     break;
 
@@ -401,7 +315,7 @@ public class SyntacticAnalyzer {
         while (!infixStack.isEmpty()) {
             token = infixStack.getLast();
             tokenType = token.getType();
-            if (tokenType.equals("expression_operator_fact") || tokenType.equals("expression_operator_term")) {
+            if (tokenType.matches("expression_op.*")) { // replace equals to match
                 prefix.push(token);
             } else {
                 if (tokenType.equals("parenthesis_open")) {
@@ -444,9 +358,11 @@ public class SyntacticAnalyzer {
     private int prcd(Token mToken) {
         switch (mToken.getType()) {
 
-            case "expression_operator_fact":// * /
+            case "expression_op_product":
+            case "expression_op_division":
                 return 4;
-            case "expression_operator_term"://+ -
+            case "expression_op_subtract":
+            case "expression_op_addition":
                 return 2;
             case "parenthesis_open":
                 return 1;
@@ -474,8 +390,10 @@ public class SyntacticAnalyzer {
             token = infixExp.pollLast();
             tokenType = token.getType();
             switch (tokenType) {
-                case "expression_operator_fact":
-                case "expression_operator_term":
+                case "expression_op_product":
+                case "expression_op_division":
+                case "expression_op_subtract":
+                case "expression_op_addition":
                     while (!STACK.isEmpty() && (prcd(STACK.getFirst()) > prcd(token))) {
                         prefixExp.push(STACK.poll());
                     }
@@ -513,8 +431,10 @@ public class SyntacticAnalyzer {
         AST myAST = new AST();
         if (!B.isEmpty()) {
             switch (B.getFirst().getType()) {
-                case "expression_operator_term":
-                case "expression_operator_fact":
+                case "expression_op_product":
+                case "expression_op_division":
+                case "expression_op_subtract":
+                case "expression_op_addition":
                     myAST.setToken(B.pop());
                     myAST.addChild(buildArismeticAST(B));
                     myAST.addChild(buildArismeticAST(B));
