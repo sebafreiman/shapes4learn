@@ -95,7 +95,7 @@ public class SyntacticAnalyzerTest {
         System.out.println("Infix to Prefix Test");
         SyntacticAnalyzer instance = new SyntacticAnalyzer();
         AST result = instance.infixConverterToAST((LinkedList<Token>) lexB.analyze("( 1 / 0 )"));
-        assertEquals("expression_operator_fact", result.getToken().getType());
+        assertEquals("expression_op_division", result.getToken().getType());
     }
     
 }

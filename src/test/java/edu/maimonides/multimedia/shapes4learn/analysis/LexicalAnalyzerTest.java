@@ -105,7 +105,7 @@ public class LexicalAnalyzerTest {
         assertEquals("expression_number", result.get(1).getType());
 
         assertEquals("+", result.get(2).getValue());
-        assertEquals("expression_operator_term", result.get(2).getType());
+        assertEquals("expression_op_addition", result.get(2).getType());
 
         assertEquals("2", result.get(3).getValue());
         assertEquals("expression_number", result.get(3).getType());
