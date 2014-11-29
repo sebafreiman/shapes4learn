@@ -43,46 +43,73 @@ public class Token {
     }
 
     public void setValue(String value) throws LexicalException {
-        if (value.matches("create")) {
-            this.setType("command_create");
-        } else if (value.matches("setcolor")) {
-            this.setType("command_setcolor");
-        } else if (value.matches("setbase")) {
-            this.setType("command_setbase");
-        } else if (value.matches("setheight")) {
-            this.setType("command_setheight");
-        } else if (value.matches("setradius")) {
-            this.setType("command_setradius");
-        } else if (value.matches("setposition")) {
-            this.setType("command_setposition");
-        } else if (value.matches("circle")) {
-            this.setType("shape_circle");
-        } else if (value.matches("rectangle")) {
-            this.setType("shape_rectangle");
-        } else if (value.matches("in")) {
-            this.setType("connector_in");
-        } else if (value.matches("shape")) {
-            this.setType("connector_shape");
-            //} else if (value.matches("(\\+|-|\\*|/|[0-9])*")) {
-        } else if (value.matches("([0-9])*")) {
-            this.setType("expression_number");
-        } else if (value.matches("\\*|/")) {
-            this.setType("expression_operator_fact");
-        } else if (value.matches("\\+|-")) {
-            this.setType("expression_operator_term");
-        } else if (value.matches("\\(")) {
-            this.setType("parenthesis_open");
-        } else if (value.matches("\\)")) {
-            this.setType("parenthesis_close");
-        } else if (value.matches("^#(([A-F|a-f|0-9]{2}){3})")) {
-            this.setType("color_def");
-        } else if (value.matches("[a-z|A-Z]{2,}")) {
-            this.setType("identifier");
-        } else if (value.matches(";")) {
-            this.setType("command_end");
-        } else if (value.matches(",")) {
-            this.setType("expression_separator");
+        switch (value) {
+            case "create":
+                this.setType("command_create");
+                break;
+            case "setcolor":
+                this.setType("command_setcolor");
+                break;
+            case "setbase":
+                this.setType("command_setbase");
+                break;
+            case "setheight":
+                this.setType("command_setheight");
+                break;
+            case "setradius":
+                this.setType("command_setradius");
+                break;
+            case "setposition":
+                this.setType("command_setposition");
+                break;
+            case "circle":
+                this.setType("shape_circle");
+                break;
+            case "rectangle":
+                this.setType("shape_rectangle");
+                break;
+            case "in":
+                this.setType("connector_in");
+                break;
+            case "shape":
+                this.setType("connector_shape");
+                break;
+            case "*":
+                this.setType("expression_op_product");
+                break;
+            case "/":
+                this.setType("expression_op_division");
+                break;
+            case "+":
+                this.setType("expression_op_addition");
+                break;
+            case "-":
+                this.setType("expression_op_subtract");
+                break;
+            case "(":
+                this.setType("parenthesis_open");
+                break;
+            case ")":
+                this.setType("parenthesis_close");
+                break;
+            case ";":
+                this.setType("command_end");
+                break;
+            case ",":
+                this.setType("expression_separator");
+                break;
+            default:
+                if (value.matches("([0-9])*")) {
+                    this.setType("expression_number");
+                } else if (value.matches("^#(([A-F|a-f|0-9]{2}){3})")) {
+                    this.setType("color_def");
+                } else if (value.matches("[a-z|A-Z]{2,}")) {
+                    this.setType("identifier");
+                }
+                break;
+
         }
+
         this.value = value;
     }
 
