@@ -1,5 +1,7 @@
 package edu.maimonides.multimedia.shapes4learn.model;
 
+import edu.maimonides.multimedia.shapes4learn.analysis.LexicalException;
+import edu.maimonides.multimedia.shapes4learn.analysis.SemanticException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +21,15 @@ public class AST {
     private List<AST> children;
     private Token token;
 
+    public void preOrder(astVisitor myVisitor) throws LexicalException, SemanticException {
+
+        for (AST child : children) {
+            child.preOrder(myVisitor);
+        }
+        myVisitor.visit(this);
+
+    }
+
     public AST(List<AST> children, Token token) {
         this.children = children;
         this.token = token;
@@ -34,6 +45,7 @@ public class AST {
 
     public AST() {
         this.children = new LinkedList<>();
+        this.token = new Token();
     }
 
     /**
@@ -53,6 +65,10 @@ public class AST {
      */
     public boolean removeChild(AST child) {
         return this.children.remove(child);
+    }
+
+    public boolean clearChilds() {
+        return this.children.removeAll(children);
     }
 
     /**
