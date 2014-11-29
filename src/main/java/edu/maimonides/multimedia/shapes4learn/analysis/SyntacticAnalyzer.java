@@ -6,7 +6,6 @@ import edu.maimonides.multimedia.shapes4learn.model.AST;
 import edu.maimonides.multimedia.shapes4learn.model.Token;
 import java.util.LinkedList;
 import java.util.ListIterator;
-import java.util.Stack;
 
 /**
  * This class is responsible for the second part of the interpreter: syntactic
@@ -123,7 +122,10 @@ public class SyntacticAnalyzer {
         //setradius [expression] in circle [id];
         AST myAST;
         myAST = matchGeneric("command_setradius");
-        myAST.addChild(matchE());
+
+        matchE();
+        myAST.addChild(infixConverterToAST(this.tkenStackInfix));
+        
         matchGeneric("connector_in");
         matchGeneric("shape_circle");
         myAST.addChild(matchGeneric("identifier"));
