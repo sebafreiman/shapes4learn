@@ -24,12 +24,16 @@ public class MainInterpreter implements Interpreter{
         LexicalAnalyzer lexA = new LexicalAnalyzer();
         SyntacticAnalyzer synA = new SyntacticAnalyzer();
         SemanticAnalyzer semA = new SemanticAnalyzer();
+        ShapeDrawVisitor shapeDrawV = new ShapeDrawVisitor();
         AST ast = new AST();
         
         try {
             List<Token> lexATokens = lexA.analyze(code);
             ast=synA.analyze(lexATokens);
             ast=semA.analyze(ast);
+            shapeDrawV.setAmbient(ambient);
+            ast.preOrder(shapeDrawV);
+            
         } catch (LexicalException | SyntacticException | SemanticException ex ) {
             throw new CodeException(ex.getMessage());
         }
