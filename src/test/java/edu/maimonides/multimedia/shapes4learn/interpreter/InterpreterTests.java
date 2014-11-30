@@ -62,7 +62,7 @@ public abstract class InterpreterTests {
 	 */
 	@Test
 	public void testCreateShape() throws CodeException {
-		commonShapeAssertions("testshape", "shape", Shape.class);
+		commonShapeAssertions("testshape", "circle", Shape.class);
 	}
 
 	private void createShape(final String shapeID) throws CodeException {
@@ -81,7 +81,7 @@ public abstract class InterpreterTests {
 		final String SHAPE_ID = "testshape";
 		final String code = "setcolor " + colorDef + " in shape " + SHAPE_ID + " ;";
 
-		createShape(SHAPE_ID);
+		createShape("circle",SHAPE_ID);
 
 		interpreter.interpret(code, ambient);
 
