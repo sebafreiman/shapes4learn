@@ -149,5 +149,39 @@ public class LexicalAnalyzerTest {
         assertEquals(";", result.get(5).getValue());
         assertEquals("command_end", result.get(5).getType());
     }
+    
+    @Test
+    public void setColor() throws Exception {
+        System.out.println("SetColor");
+        String code = "setcolor #FF00AA in shape micircle ;";
+        LexicalAnalyzer instance = new LexicalAnalyzer();
+        List<Token> expResult = null;
+        List<Token> result = instance.analyze(code);
+        assertEquals(8, result.size());
+        assertEquals("setcolor", result.get(0).getValue());
+        assertEquals("command_setcolor", result.get(0).getType());
+
+        assertEquals("FF", result.get(1).getValue());
+        assertEquals("color_def_red", result.get(1).getType());
+        
+         assertEquals("00", result.get(2).getValue());
+        assertEquals("color_def_green", result.get(2).getType());
+        
+         assertEquals("AA", result.get(3).getValue());
+        assertEquals("color_def_blue", result.get(3).getType());
+        
+
+        assertEquals("in", result.get(4).getValue());
+        assertEquals("connector_in", result.get(4).getType());
+
+        assertEquals("shape", result.get(5).getValue());
+        assertEquals("connector_shape", result.get(5).getType());
+
+        assertEquals("micircle", result.get(6).getValue());
+        assertEquals("identifier", result.get(6).getType());
+
+        assertEquals(";", result.get(7).getValue());
+        assertEquals("command_end", result.get(7).getType());
+    }
 
 }
