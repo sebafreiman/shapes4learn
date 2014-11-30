@@ -106,9 +106,12 @@ public class SyntacticAnalyzer {
         //setcolor [color_def] in shape [id]; 
         AST myAST;
         myAST = matchGeneric("command_setcolor");
-        myAST.addChild(matchGeneric("color_def"));
+        myAST.addChild(matchGeneric("color_def_red"));
+        myAST.addChild(matchGeneric("color_def_green"));
+        myAST.addChild(matchGeneric("color_def_blue"));
+
         matchGeneric("connector_in");
-        myAST.addChild(matchGeneric("shape_rectangle|shape_circle"));
+        matchGeneric("connector_shape");
         myAST.addChild(matchGeneric("identifier"));
         matchGeneric("command_end");
         return myAST;
@@ -125,7 +128,7 @@ public class SyntacticAnalyzer {
 
         matchE();
         myAST.addChild(infixConverterToAST(this.tkenStackInfix));
-        
+
         matchGeneric("connector_in");
         matchGeneric("shape_circle");
         myAST.addChild(matchGeneric("identifier"));
@@ -151,7 +154,7 @@ public class SyntacticAnalyzer {
         myAST.addChild(infixConverterToAST(this.tkenStackInfix));
         matchGeneric("connector_in");
 
-        matchGeneric("shape_circle|shape_rectangle");
+        matchGeneric("connector_shape");
 
         myAST.addChild(matchGeneric("identifier"));
         matchGeneric("command_end");
@@ -164,7 +167,7 @@ public class SyntacticAnalyzer {
         AST myAST = new AST();
         if (this.tkenit.hasNext()) {
             Token tken = this.tkenit.next();
-            if (tken.getType().matches(tokenType)) {
+            if (tken.matchType(tokenType)) {
                 myAST.setToken(tken);
             } else {
                 throw new SyntacticException("Syntactic exception: I was expecting something like:" + tokenType + ". \n I've found a token type: " + tken.getType() + " value:'" + tken.getValue() + "'");
@@ -179,7 +182,7 @@ public class SyntacticAnalyzer {
         AST myAST = new AST();
         if (this.tkenit.hasNext()) {
             Token tken = this.tkenit.next();
-            if (tken.getType().matches(tokenType)) {
+            if (tken.matchType(tokenType)) {
                 myAST.setToken(tken);
                 this.tkenStackInfix.add(tken);
             } else {
@@ -288,7 +291,7 @@ public class SyntacticAnalyzer {
         boolean matchStatus = false;
         if (this.tkenit.hasNext()) {
             Token tken = this.tkenit.next();
-            if (tken.getType().matches(typeString)) {
+            if (tken.matchType(typeString)) {
                 matchStatus = true;
             }
             this.tkenit.previous();
