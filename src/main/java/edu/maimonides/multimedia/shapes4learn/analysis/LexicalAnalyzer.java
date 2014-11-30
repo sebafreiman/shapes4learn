@@ -1,5 +1,6 @@
 package edu.maimonides.multimedia.shapes4learn.analysis;
 
+import edu.maimonides.multimedia.shapes4learn.model.Color;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,29 +20,34 @@ public class LexicalAnalyzer {
     public List<Token> analyze(String code) throws LexicalException {
         List<Token> tokens = new LinkedList<>();
         String[] codeLines = code.split("\\s+");
-        //StringUtils.splitPreserveAllTokens(code, ";");
-        //Tipos de token: TokenFunciones,TokenID, TokenColorFed, TolenOpAris,Token(, Token)....Token;
-        //usar StringUtils para no perder el ';'
-        //regex a{0,5} para la clausura kleane pero para la letra 'a' 6 veces.
-        //mipatron.compile("[ ;\n]");
         for (String tken : codeLines) {
             Token newToken = new Token();
             newToken.setValue(tken);
+
+            if (newToken.matchType("color_def")) {
+                newToken = new Token();
+                tken = tken.substring(1);
+                newToken.setValue(tken.substring(0, 2));
+                newToken.setType("color_def_red");
+                tokens.add(newToken);
+
+                newToken = new Token();
+
+                newToken.setValue(tken.substring(2, 4));
+                newToken.setType("color_def_green");
+                tokens.add(newToken);
+
+                newToken = new Token();
+                newToken.setValue(tken.substring(4, 6));
+                newToken.setType("color_def_blue");
+
+            }
             tokens.add(newToken);
-            //System.out.println( newToken.getType()+ " "  + newToken.getValue());
-            if(newToken.getType().equals(""))
-            {
-                throw new LexicalException("Lexical exception: Not a valid lexeme:\"" + tken +"\"");
-                        
+            if (newToken.getType().equals("")) {
+                throw new LexicalException("Lexical exception: Not a valid lexeme:\"" + tken + "\"");
+
             }
         }
         return tokens;
-
-        //sintacticio: logica embebida en el codigo
-        //semantico:
-        //el size no puede ser menor que 0.
-        //optimizacion de codigo
-        //generacion de codigo, creacion en shape
-        //recorrer AST,
     }
 }
