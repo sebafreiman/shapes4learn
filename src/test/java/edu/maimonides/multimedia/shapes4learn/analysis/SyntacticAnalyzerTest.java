@@ -54,7 +54,7 @@ public class SyntacticAnalyzerTest {
             lexSet = lexA.analyze("setradius ( 6 * ( 5 * 4 )  +  ( 1 ) ) + ( 2 )  in circle micircle ; ");
             lexAll.addAll(lexSet.subList(0, lexSet.size()));
             
-            lexSet = lexA.analyze("setposition 1 * 2 + 3 , 7 + 7 * 2 - 1 in circle miid ; ");
+            lexSet = lexA.analyze("setposition 1 * 2 + 3 , 7 + 7 * 2 - 1 in shape miid ; ");
             lexAll.addAll(lexSet.subList(0, lexSet.size()));
             
         } catch (LexicalException ex) {
