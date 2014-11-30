@@ -14,6 +14,7 @@ import edu.maimonides.multimedia.shapes4learn.model.astVisitor;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Circle;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Rectangle;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Shape;
+import edu.maimonides.multimedia.shapes4learn.utils.ColorUtils;
 import java.util.Iterator;
 
 /**
@@ -56,7 +57,6 @@ class ShapeDrawVisitor implements astVisitor {
 
     void setAmbient(ShapeAmbient ambient) {
         this.ambient = ambient;
-        clearShapeAmbient();
 
     }
 
@@ -78,11 +78,19 @@ class ShapeDrawVisitor implements astVisitor {
     }
 
     void setColor(AST myAST) throws SemanticException {
-        Shape miShape = this.ambient.get(myAST.getChild(2).getToken().getValue());
+
+        String shapeID = myAST.getChild(3).getToken().getValue();
+        shapeExists(shapeID);
+
+        Shape miShape = this.ambient.get(shapeID);
+        String colorR = myAST.getChild(0).getToken().getValue();
+        String colorG = myAST.getChild(1).getToken().getValue();
+        String colorB = myAST.getChild(2).getToken().getValue();
+
         Color miColor = new Color();
-        miColor.setBlue(0);
-        miColor.setGreen(0);
-        miColor.setRed(255);
+        miColor.setBlue(Integer.parseInt(colorB, 16));
+        miColor.setGreen(Integer.parseInt(colorG, 16));
+        miColor.setRed(Integer.parseInt(colorR, 16));
         miShape.setColor(miColor);
     }
 
@@ -90,54 +98,82 @@ class ShapeDrawVisitor implements astVisitor {
         Rectangle miShape = new Rectangle();
         int base = Integer.parseInt(myAST.getChild(0).getToken().getValue());
         String shapeID = myAST.getChild(2).getToken().getValue();
+        shapeExists(shapeID);
 
         if (!(this.ambient.get(shapeID).getClass().equals(miShape.getClass()))) {
-            throw new SemanticException("Semantic exception: Only rectangles shapes do have base, go back to first grade!");
-
+            throw new SemanticException("Semantic exception: In first grade you learn that only rectangles shapes do have base,think about it.");
         }
+
         miShape = (Rectangle) this.ambient.get(shapeID);
         miShape.setBase(base);
     }
 
-    private void setHeight(AST myAST) {
+    private void setHeight(AST myAST) throws SemanticException {
+
+        String shapeID = myAST.getChild(2).getToken().getValue();
+        shapeExists(shapeID);
+
         Rectangle miShape;
         int height = Integer.parseInt(myAST.getChild(0).getToken().getValue());
-        String shapeID = myAST.getChild(2).getToken().getValue();
 
         miShape = (Rectangle) this.ambient.get(shapeID);
         miShape.setHeight(height);
     }
 
     private void setRadius(AST myAST) throws SemanticException {
+        String shapeID = myAST.getChild(1).getToken().getValue();
+        shapeExists(shapeID);
+
         Circle miShape = new Circle();
         int radius;
         radius = Integer.parseInt(myAST.getChild(0).getToken().getValue());
-        String shapeID = myAST.getChild(1).getToken().getValue();
 
         if (!(this.ambient.get(shapeID).getClass().equals(miShape.getClass()))) {
             throw new SemanticException("Semantic exception: Only circle shapes do have radius, go back to first grade!");
-
         }
         miShape = (Circle) this.ambient.get(shapeID);
         miShape.setRadius(radius);
     }
 
-    private void setPosition(AST myAST) {
-        Rectangle miShape;
+    /**
+     * Set position of the shape
+     *
+     * @param myAST
+     */
+    private void setPosition(AST myAST) throws SemanticException {
+        Shape miShape;
         int positionX = Integer.parseInt(myAST.getChild(0).getToken().getValue());
         int positionY = Integer.parseInt(myAST.getChild(1).getToken().getValue());
 
         String shapeID = myAST.getChild(2).getToken().getValue();
-
-        miShape = (Rectangle) this.ambient.get(shapeID);
+        shapeExists(shapeID);
+        miShape = this.ambient.get(shapeID);
+        miShape.setX(positionX);
+        miShape.setY(positionY);
     }
 
+    /**
+     * Clear the Shape Ambient. Removes all Shapes.
+     */
     private void clearShapeAmbient() {
         for (Iterator<Shape> it = this.ambient.shapes().iterator(); it.hasNext();) {
             Shape sss = it.next();
             this.ambient.remove(sss.getId());
         }
 
+    }
+
+    /**
+     * ShapeExists throws a semantic exception if can't find the shape id in the
+     * ambient.
+     *
+     * @param shapeID
+     * @throws SemanticException
+     */
+    private void shapeExists(String shapeID) throws SemanticException {
+        if (!this.ambient.contains(shapeID)) {
+            throw new SemanticException("Semantic exception: Can't find the shape named '" + shapeID + "' in the ambient, but you have the power.");
+        }
     }
 
 }
