@@ -31,7 +31,7 @@ public class Token {
     }
 
     public boolean matchType(String value) {
-        return this.type.equals(value);
+        return this.type.matches(value);
     }
 
     public String getValue() {
@@ -109,7 +109,6 @@ public class Token {
                 break;
 
         }
-
         this.value = value;
     }
 
