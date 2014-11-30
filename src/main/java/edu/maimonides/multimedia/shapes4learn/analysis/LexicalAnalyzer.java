@@ -24,6 +24,7 @@ public class LexicalAnalyzer {
             Token newToken = new Token();
             newToken.setValue(tken);
 
+            //for color_def lexical analysis
             if (newToken.matchType("color_def")) {
                 newToken = new Token();
                 tken = tken.substring(1);

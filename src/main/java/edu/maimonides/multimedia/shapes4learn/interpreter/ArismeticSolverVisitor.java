@@ -13,7 +13,7 @@ import edu.maimonides.multimedia.shapes4learn.model.astVisitor;
 import java.util.Stack;
 
 /**
- *
+ * Visitor to solve arismetic expressions.
  * @author sfreiman
  */
 public class ArismeticSolverVisitor implements astVisitor {
@@ -50,7 +50,14 @@ public class ArismeticSolverVisitor implements astVisitor {
         }
 
     }
-
+/**
+ * Evaluate the arismetics operators and returns the string representation of
+ * the result.
+ * Performs validation of positive results.
+ * @param tokenType
+ * @return
+ * @throws SemanticException 
+ */
     private String evaluate(String tokenType) throws SemanticException {
         switch (tokenType) {
             case "expression_op_product":

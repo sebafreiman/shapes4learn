@@ -15,7 +15,15 @@ public class SemanticAnalyzer {
 
     public SemanticAnalyzer() {
     }
-
+/**
+ * This class performance and semantic analysis. 
+ * Optimization: solve arismetics expressions and replace subAST with solution.
+ * Semantic analysis: check if arismetic solution is zero or positive.
+ * @param myAST
+ * @return resultAST
+ * @throws SemanticException
+ * @throws LexicalException 
+ */
     public AST analyze(AST myAST) throws SemanticException, LexicalException {
         AST resultAST=myAST;
         ArismeticSolverVisitor ASV=new ArismeticSolverVisitor();

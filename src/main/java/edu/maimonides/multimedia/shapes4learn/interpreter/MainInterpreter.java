@@ -14,8 +14,8 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
- *
- * @author sfreiman
+ * Interpreter implementation
+  * @author sfreiman
  */
 public class MainInterpreter implements Interpreter{
 

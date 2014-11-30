@@ -9,7 +9,7 @@ import edu.maimonides.multimedia.shapes4learn.analysis.LexicalException;
 import edu.maimonides.multimedia.shapes4learn.analysis.SemanticException;
 
 /**
- *
+ *Just an interface of AST visitor pattern.
  * @author sfreiman
  */
 public interface astVisitor {

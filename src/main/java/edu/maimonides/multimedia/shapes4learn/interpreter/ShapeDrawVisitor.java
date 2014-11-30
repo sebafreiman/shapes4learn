@@ -14,11 +14,10 @@ import edu.maimonides.multimedia.shapes4learn.model.astVisitor;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Circle;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Rectangle;
 import edu.maimonides.multimedia.shapes4learn.model.shapes.Shape;
-import edu.maimonides.multimedia.shapes4learn.utils.ColorUtils;
 import java.util.Iterator;
 
 /**
- *
+ *Implements astVisitor to run commands in the shapeambient.
  * @author sfreiman
  */
 class ShapeDrawVisitor implements astVisitor {
@@ -54,12 +53,19 @@ class ShapeDrawVisitor implements astVisitor {
                 break;
         }
     }
-
+/**
+ * Set the ambient where the commands will be shapes will be draw 
+ * @param ambient 
+ */
     void setAmbient(ShapeAmbient ambient) {
         this.ambient = ambient;
 
     }
-
+/**
+ * Creates a shape in the ambient
+ * @param myAST
+ * @throws SemanticException 
+ */
     void createShape(AST myAST) throws SemanticException {
         Shape miShape;
         switch (myAST.getChild(0).getToken().getType()) {
@@ -76,7 +82,11 @@ class ShapeDrawVisitor implements astVisitor {
         this.ambient.add(miShape);
 
     }
-
+/**
+ * Set the color to a shape
+ * @param myAST
+ * @throws SemanticException 
+ */
     void setColor(AST myAST) throws SemanticException {
 
         String shapeID = myAST.getChild(3).getToken().getValue();
@@ -94,6 +104,11 @@ class ShapeDrawVisitor implements astVisitor {
         miShape.setColor(miColor);
     }
 
+    /**
+     * Set a base of the rectangle
+     * @param myAST
+     * @throws SemanticException 
+     */
     void setBase(AST myAST) throws SemanticException {
         Rectangle miShape = new Rectangle();
         int base = Integer.parseInt(myAST.getChild(0).getToken().getValue());
@@ -107,7 +122,11 @@ class ShapeDrawVisitor implements astVisitor {
         miShape = (Rectangle) this.ambient.get(shapeID);
         miShape.setBase(base);
     }
-
+/**
+ * Set height of the rectangle shape
+ * @param myAST
+ * @throws SemanticException 
+ */
     private void setHeight(AST myAST) throws SemanticException {
 
         String shapeID = myAST.getChild(2).getToken().getValue();
@@ -119,7 +138,11 @@ class ShapeDrawVisitor implements astVisitor {
         miShape = (Rectangle) this.ambient.get(shapeID);
         miShape.setHeight(height);
     }
-
+/**
+ * Set the radius of the circle
+ * @param myAST
+ * @throws SemanticException 
+ */
     private void setRadius(AST myAST) throws SemanticException {
         String shapeID = myAST.getChild(1).getToken().getValue();
         shapeExists(shapeID);
@@ -156,8 +179,7 @@ class ShapeDrawVisitor implements astVisitor {
      * Clear the Shape Ambient. Removes all Shapes.
      */
     private void clearShapeAmbient() {
-        for (Iterator<Shape> it = this.ambient.shapes().iterator(); it.hasNext();) {
-            Shape sss = it.next();
+        for (Shape sss : this.ambient.shapes()) {
             this.ambient.remove(sss.getId());
         }
 

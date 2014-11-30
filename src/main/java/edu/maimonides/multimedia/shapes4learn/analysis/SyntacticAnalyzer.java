@@ -27,6 +27,13 @@ public class SyntacticAnalyzer {
 
     }
 
+    /**
+     * Validate each token syntax and builds a syntax tree
+     *
+     * @param tokens
+     * @return AST
+     * @throws SyntacticException
+     */
     public AST analyze(List<Token> tokens) throws SyntacticException {
 
         String tkenString;
@@ -84,6 +91,7 @@ public class SyntacticAnalyzer {
     }
 
     /**
+     *
      * @return @throws SyntacticException
      */
     public AST matchCreate() throws SyntacticException {
@@ -178,6 +186,12 @@ public class SyntacticAnalyzer {
         return myAST;
     }
 
+    /**
+     *
+     * @param tokenType
+     * @return
+     * @throws SyntacticException
+     */
     public AST matchGenericExpr(String tokenType) throws SyntacticException {
         AST myAST = new AST();
         if (this.tkenit.hasNext()) {
@@ -195,19 +209,19 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * matchE()
+     * Arismetic Expression matcher
+     *
+     * <E> ::= <T> <E'> ->MatchE
+     * <E'> ::= + <E> | - <E> | ε -> matchExprTerm
+     * <T> ::= <F> <T'>
+     * <T'> ::= * <T> | / <T> | ε
+     * <F> ::= [N] | ( <E> ) | - <F> matchExprFactor
      *
      * @return
      * @throws SyntacticException
      */
     private AST matchE() throws SyntacticException {
-        /*
-         <E> ::= <T> <E'>  ->MatchE
-         <E'> ::= + <E> | - <E> | ε -> matchExprTerm
-         <T> ::= <F> <T'>
-         <T'> ::= * <T> | / <T> | ε
-         <F> ::= [N] | ( <E> ) | - <F> matchExprFactor
-         */
+
         AST expAST = new AST();
         String lookStr = lookaheadString();
         switch (lookStr) {
@@ -257,6 +271,12 @@ public class SyntacticAnalyzer {
 
     }
 
+    /**
+     * Expression factor checker
+     *
+     * @return
+     * @throws SyntacticException
+     */
     private AST matchExprFactor() throws SyntacticException {
         AST expAST = new AST();
         String lookString = lookaheadString();
@@ -300,6 +320,11 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
+    /**
+     * If there is a next token, returns the token type as a string.
+     *
+     * @return String
+     */
     private String lookaheadString() {
         String matchStatus = "";
         if (this.tkenit.hasNext()) {
@@ -311,54 +336,11 @@ public class SyntacticAnalyzer {
         return matchStatus;
     }
 
-    LinkedList ArismeticInfixToPrefix(LinkedList<Token> infixStack) {
-        LinkedList<Token> preStack = new LinkedList<Token>(); //stack intermedio
-        LinkedList<Token> prefix = new LinkedList<Token>(); // notation prefix
-        Token token;
-        String tokenType;
-
-        while (!infixStack.isEmpty()) {
-            token = infixStack.getLast();
-            tokenType = token.getType();
-            if (tokenType.matches("expression_op.*")) { // replace equals to match
-                prefix.push(token);
-            } else {
-                if (tokenType.equals("parenthesis_open")) {
-                    preStack.push(token);
-                } else if (tokenType.equals("parenthesis_close")) {
-                    while (!preStack.isEmpty() && !preStack.getLast().getType().equals("parenthesis_open")) {
-                        prefix.push(preStack.pollLast());
-                    }
-
-                    if (!preStack.isEmpty()) {
-                        token = preStack.pop();
-                    }
-
-                } else {
-                    if (!preStack.isEmpty() && prcd(preStack.getFirst()) <= prcd(token)) {
-                        preStack.push(token);
-                    } else {
-                        while (!preStack.isEmpty() && prcd(preStack.getFirst()) >= prcd(token)) {
-                            prefix.push(preStack.pop());
-                        }
-                        preStack.push(token);
-                    }
-                }
-            }
-            infixStack.pollLast();
-
-        }
-        while (!preStack.isEmpty()) {
-            prefix.add(preStack.pop());
-
-        }
-        return prefix;
-
-    }
-
-    /*
-     Order of precedence in arismetic expressions
-    
+    /**
+     * Order of precedence in arismetic expressions
+     *
+     * @param mToken
+     * @return
      */
     private int prcd(Token mToken) {
         switch (mToken.getType()) {
@@ -379,8 +361,7 @@ public class SyntacticAnalyzer {
     }
 
     /**
-     * Converts infix linked list to a AST
-     *
+     * Converts infix expression from a linked list to a AST
      * @param infixExp
      * @return AST
      */
@@ -430,6 +411,8 @@ public class SyntacticAnalyzer {
     }
 
     /**
+     * Builds arismetic syntax tree from linkedlist.
+     * 
      * @param B return AST
      */
     AST buildArismeticAST(LinkedList<Token> B) {

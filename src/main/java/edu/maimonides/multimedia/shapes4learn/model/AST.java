@@ -20,7 +20,12 @@ public class AST {
      */
     private List<AST> children;
     private Token token;
-
+/**
+ * Runs astVisitor on each AST nodes in pre-order.
+ * @param myVisitor
+ * @throws LexicalException
+ * @throws SemanticException 
+ */
     public void preOrder(astVisitor myVisitor) throws LexicalException, SemanticException {
 
         for (AST child : children) {
